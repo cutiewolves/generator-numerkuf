@@ -25,16 +25,20 @@ const Index = () => {
   const [excluded, setExcluded] = useState(7);
   const [result, setResult] = useState<number | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
-  
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
   const entropyRef = useRef<HTMLDivElement>(null);
-  const { points, clearPoints } = useMouseEntropy(entropyRef, !isSpinning);
+  const { points, clearPoints } = useMouseEntropy(entropyRef, !isSpinning && !isFullScreen);
 
   const onSpinComplete = useCallback(() => {
-    setIsSpinning(false);
+    setTimeout(() => {
+      setIsFullScreen(false);
+      setIsSpinning(false);
+    }, 2000); // Wait 2 seconds before closing fullscreen
   }, []);
 
   const handleGenerate = () => {
-    if (isSpinning) return;
+    if (isSpinning || isFullScreen) return;
 
     const parsedMin = parseInt(String(min), 10);
     const parsedMax = parseInt(String(max), 10);
@@ -65,33 +69,51 @@ const Index = () => {
     const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
     const finalNumber = possibleNumbers[randomIndex];
 
-    setIsSpinning(true);
     setResult(finalNumber);
+    setIsFullScreen(true); // Start fullscreen animation
     clearPoints();
   };
 
+  const handleTransitionEnd = () => {
+    if (isFullScreen && !isSpinning) {
+      setIsSpinning(true); // Start spinning after fullscreen animation
+    }
+  };
+
   const entropyProgress = Math.min((points.length / ENTROPY_TARGET) * 100, 100);
-  const buttonDisabled = isSpinning || entropyProgress < 100;
-  const buttonText = isSpinning ? 'Spinning...' : 'Generate Number';
+  const isBusy = isSpinning || isFullScreen;
+  const buttonDisabled = isBusy || entropyProgress < 100;
+  const buttonText = isBusy ? 'Spinning...' : 'Generate Number';
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 space-y-8">
-      <div className="text-center">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 space-y-8 overflow-hidden">
+      <div className={cn("text-center transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
         <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-2 tracking-wider uppercase" style={{ textShadow: '0 0 10px rgba(250, 204, 21, 0.5)' }}>
           Entropy Roulette
         </h1>
         <p className="text-gray-400">Your mouse movements fuel true randomness.</p>
       </div>
 
-      <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 items-center">
+      <div 
+        onTransitionEnd={handleTransitionEnd}
+        className={cn(
+          "transition-all duration-500 ease-in-out w-full flex items-center justify-center",
+          isFullScreen 
+            ? "fixed inset-0 z-50" 
+            : "max-w-4xl"
+        )}
+      >
         <CaseOpening 
           min={min} 
           max={max} 
           excluded={excluded} 
           result={result}
           onSpinComplete={onSpinComplete}
+          shouldSpin={isSpinning}
         />
+      </div>
 
+      <div className={cn("w-full max-w-4xl mx-auto flex flex-col gap-8 items-center transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-gray-800 border-gray-700 text-white">
             <CardHeader>
@@ -100,15 +122,15 @@ const Index = () => {
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="min">Min Number</Label>
-                <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isSpinning} />
+                <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="max">Max Number</Label>
-                <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isSpinning} />
+                <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="excluded">Lucky Number (Exclude)</Label>
-                <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isSpinning} />
+                <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
             </CardContent>
           </Card>
@@ -125,11 +147,11 @@ const Index = () => {
                 ref={entropyRef} 
                 className={cn(
                   "w-full h-48 bg-gray-800 cursor-crosshair rounded-lg overflow-hidden relative",
-                  isSpinning && "cursor-not-allowed"
+                  isBusy && "cursor-not-allowed"
                 )}
               >
                 <EntropyCanvas width={500} height={192} points={points} />
-                {isSpinning && (
+                {isBusy && (
                   <div className="absolute inset-0 bg-gray-900/70 flex items-center justify-center transition-opacity duration-300">
                     <p className="text-white font-bold text-lg">Spin in progress...</p>
                   </div>
@@ -143,7 +165,7 @@ const Index = () => {
           </Card>
         </div>
       </div>
-      <div className="absolute bottom-0 left-0 w-full">
+      <div className={cn("absolute bottom-0 left-0 w-full transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
         <MadeWithDyad />
       </div>
     </div>

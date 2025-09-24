@@ -8,6 +8,7 @@ interface CaseOpeningProps {
   excluded: number;
   result: number | null;
   onSpinComplete: () => void;
+  shouldSpin: boolean;
 }
 
 const TOTAL_ITEMS = 100;
@@ -25,14 +26,17 @@ const generateRandomNumber = (min: number, max: number, excluded: number) => {
   return num;
 };
 
-const CaseOpening = ({ min, max, excluded, result, onSpinComplete }: CaseOpeningProps) => {
+const CaseOpening = ({ min, max, excluded, result, onSpinComplete, shouldSpin }: CaseOpeningProps) => {
   const controls = useAnimationControls();
   const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
   const [winningIndex, setWinningIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (result === null) return;
+    if (result === null) {
+      setDisplayNumbers([]);
+      return;
+    }
 
     const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
     setWinningIndex(winnerIndex);
@@ -47,7 +51,7 @@ const CaseOpening = ({ min, max, excluded, result, onSpinComplete }: CaseOpening
   }, [result, min, max, excluded]);
 
   useEffect(() => {
-    if (displayNumbers.length === 0 || !containerRef.current) return;
+    if (!shouldSpin || displayNumbers.length === 0 || !containerRef.current) return;
 
     const itemTotalWidth = ITEM_WIDTH_PX + ITEM_GAP_PX;
     const containerWidth = containerRef.current.offsetWidth;
@@ -67,7 +71,7 @@ const CaseOpening = ({ min, max, excluded, result, onSpinComplete }: CaseOpening
     };
 
     spin();
-  }, [displayNumbers, winningIndex, controls, onSpinComplete]);
+  }, [shouldSpin, displayNumbers, winningIndex, controls, onSpinComplete]);
 
   const getItemColor = (num: number) => {
     const range = max - min;
