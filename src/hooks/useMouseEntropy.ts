@@ -5,7 +5,7 @@ interface MousePoint {
   y: number;
 }
 
-export function useMouseEntropy(ref: RefObject<HTMLElement>) {
+export function useMouseEntropy(ref: RefObject<HTMLElement>, enabled: boolean) {
   const [points, setPoints] = useState<MousePoint[]>([]);
 
   const handleMouseMove = useCallback((event: MouseEvent) => {
@@ -20,7 +20,7 @@ export function useMouseEntropy(ref: RefObject<HTMLElement>) {
 
   useEffect(() => {
     const element = ref.current;
-    if (element) {
+    if (element && enabled) {
       // Cast to EventListener to satisfy addEventListener's type signature
       const listener = handleMouseMove as EventListener;
       element.addEventListener('mousemove', listener);
@@ -28,7 +28,7 @@ export function useMouseEntropy(ref: RefObject<HTMLElement>) {
         element.removeEventListener('mousemove', listener);
       };
     }
-  }, [ref, handleMouseMove]);
+  }, [ref, handleMouseMove, enabled]);
 
   const clearPoints = useCallback(() => {
     setPoints([]);
