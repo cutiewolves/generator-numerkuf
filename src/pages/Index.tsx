@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMouseEntropy } from '@/hooks/useMouseEntropy';
-import Roulette from '@/components/Roulette';
+import Roulette3D from '@/components/Roulette3D';
 import { showError } from '@/utils/toast';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import EntropyCanvas from '@/components/EntropyCanvas';
@@ -85,8 +85,8 @@ const Index = () => {
       </div>
 
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <div className="flex items-center justify-center">
-          <Roulette
+        <div className="w-full h-96 flex items-center justify-center">
+          <Roulette3D
             targetNumber={result}
             isSpinning={isSpinning}
             min={min}
