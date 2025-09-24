@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { Howl } from 'howler';
 
 interface RouletteProps {
   targetNumber: number | null;
@@ -9,95 +10,103 @@ interface RouletteProps {
   onSpinEnd: () => void;
 }
 
-const Roulette = ({ targetNumber, isSpinning, min, max, onSpinEnd }: RouletteProps) => {
-  const [highlightedNumber, setHighlightedNumber] = useState<number | null>(null);
-  const timeoutRef = useRef<number | null>(null);
+// Sound setup
+const spinSound = new Howl({
+  src: ['/sounds/roulette-spin.mp3'],
+  loop: true,
+  volume: 0.5,
+});
 
-  // Memoize the numbers array to prevent it from being recreated on every render,
-  // which was the cause of the infinite re-render loop.
+const ballSound = new Howl({
+  src: ['/sounds/roulette-ball.mp3'],
+  volume: 0.8,
+});
+
+const Roulette = ({ targetNumber, isSpinning, min, max, onSpinEnd }: RouletteProps) => {
+  const [rotation, setRotation] = useState(0);
+  const wheelRef = useRef<HTMLDivElement>(null);
+
   const numbers = useMemo(() => 
     Array.from({ length: Math.min(max - min + 1, 36) }, (_, i) => min + i),
     [min, max]
   );
 
   const angleStep = 360 / numbers.length;
-  const radius = 140; // In pixels
+  const radius = 140;
 
   useEffect(() => {
-    if (isSpinning) {
-      const startTime = Date.now();
-      const totalDuration = 8000; // 8 seconds total spin time
+    const wheelElement = wheelRef.current;
 
-      const spin = () => {
-        const elapsedTime = Date.now() - startTime;
+    const handleTransitionEnd = () => {
+      spinSound.stop();
+      ballSound.play();
+      onSpinEnd();
+    };
 
-        // Stop the animation when the total duration is reached
-        if (elapsedTime >= totalDuration) {
-          setHighlightedNumber(targetNumber);
-          onSpinEnd();
-          return;
-        }
+    if (isSpinning && targetNumber !== null) {
+      const targetIndex = numbers.indexOf(targetNumber);
+      if (targetIndex === -1) return;
 
-        // Pick a random number to display during the spin
-        const randomIndex = Math.floor(Math.random() * numbers.length);
-        setHighlightedNumber(numbers[randomIndex]);
-
-        // Calculate the delay for the next number change.
-        // The delay increases as we get closer to the end, creating a slowdown effect.
-        const progress = elapsedTime / totalDuration;
-        const initialDelay = 50; // Fast at the beginning
-        const finalDelay = 700;  // Slow at the end
-        const delay = initialDelay + (finalDelay - initialDelay) * (progress * progress);
-
-        timeoutRef.current = window.setTimeout(spin, delay);
-      };
-
-      spin();
+      const fullSpins = 10;
+      const randomOffset = -angleStep / 2 + Math.random() * angleStep;
+      const finalAngle = (360 * fullSpins) - (targetIndex * angleStep) + randomOffset;
+      
+      setRotation(prev => prev + finalAngle);
+      spinSound.play();
+      
+      wheelElement?.addEventListener('transitionend', handleTransitionEnd, { once: true });
     }
 
-    // Cleanup function to clear the timeout if the component unmounts or spinning stops
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      wheelElement?.removeEventListener('transitionend', handleTransitionEnd);
+      spinSound.stop();
     };
-  }, [isSpinning, targetNumber, numbers, onSpinEnd]);
+  }, [isSpinning, targetNumber, numbers, onSpinEnd, angleStep]);
+
+  const getNumberColor = (num: number) => {
+    const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+    if (redNumbers.includes(num)) return 'bg-red-700';
+    return 'bg-gray-800';
+  };
 
   return (
-    <div className="w-80 h-80 md:w-96 md:h-96 rounded-full bg-gray-900 border-8 border-yellow-500 relative flex items-center justify-center shadow-2xl">
-      <div className="absolute w-full h-full rounded-full border-4 border-gray-700"></div>
-      <div className="absolute w-2/3 h-2/3 rounded-full bg-gray-800 border-4 border-gray-600"></div>
-      
-      {numbers.map((num, index) => {
-        const angle = angleStep * index;
-        const isHighlighted = num === highlightedNumber;
-        const isTarget = num === targetNumber && !isSpinning;
-
-        return (
-          <div
-            key={num}
-            className="absolute w-10 h-10"
-            style={{
-              transform: `rotate(${angle}deg) translate(${radius}px) rotate(-${angle}deg)`,
-            }}
-          >
+    <div className="w-96 h-96 flex items-center justify-center" style={{ perspective: '1000px' }}>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-yellow-400 z-30"></div>
+      <div
+        ref={wheelRef}
+        className="relative w-80 h-80 rounded-full border-8 border-yellow-600 bg-green-800 shadow-2xl transition-transform duration-[7000ms] ease-out"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: `rotateX(60deg) rotateZ(${rotation}deg)`,
+        }}
+      >
+        <div className="absolute inset-0 w-full h-full rounded-full border-[16px] border-gray-700"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-gray-900 rounded-full border-4 border-yellow-500 flex items-center justify-center">
+          <span className="text-2xl font-bold text-white" style={{ transform: 'rotateX(-60deg)' }}>
+            {isSpinning ? '?' : targetNumber ?? '?'}
+          </span>
+        </div>
+        
+        {numbers.map((num, index) => {
+          const angle = angleStep * index;
+          return (
             <div
-              className={cn(
-                "w-full h-full rounded-full flex items-center justify-center font-bold transition-all duration-100",
-                isHighlighted ? "bg-yellow-400 text-black scale-125 z-20" : "bg-gray-700 text-white",
-                isTarget && "bg-green-500 text-white scale-125 z-20"
-              )}
+              key={num}
+              className="absolute w-full h-full"
+              style={{ transform: `rotate(${angle}deg)` }}
             >
-              {num}
+              <div
+                className={cn(
+                  "absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[12px] w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm",
+                  getNumberColor(num)
+                )}
+                style={{ transform: `translateY(${radius}px)` }}
+              >
+                <span style={{ transform: 'rotateX(-60deg)' }}>{num}</span>
+              </div>
             </div>
-          </div>
-        );
-      })}
-
-      <div className="z-10 w-24 h-24 bg-gray-900 rounded-full flex items-center justify-center border-4 border-yellow-500">
-        <span className="text-4xl font-bold text-white">
-          {isSpinning ? '?' : targetNumber ?? '?'}
-        </span>
+          );
+        })}
       </div>
     </div>
   );
