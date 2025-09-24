@@ -1,8 +1,8 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useMouseEntropy } from '@/hooks/useMouseEntropy';
 import Roulette3D from '@/components/Roulette3D';
 import { showError } from '@/utils/toast';
@@ -23,14 +23,11 @@ const Index = () => {
   const [max, setMax] = useState(36);
   const [excluded, setExcluded] = useState(7);
   const [result, setResult] = useState<number | null>(null);
-  const [isSpinning, setIsSpinning] = useState(false);
   
   const entropyRef = useRef<HTMLDivElement>(null);
   const { points, clearPoints } = useMouseEntropy(entropyRef);
 
   const handleGenerate = () => {
-    if (isSpinning) return;
-
     const parsedMin = parseInt(String(min), 10);
     const parsedMax = parseInt(String(max), 10);
     const parsedExcluded = parseInt(String(excluded), 10);
@@ -65,13 +62,8 @@ const Index = () => {
     const finalNumber = possibleNumbers[randomIndex];
 
     setResult(finalNumber);
-    setIsSpinning(true);
-  };
-
-  const handleSpinEnd = useCallback(() => {
-    setIsSpinning(false);
     clearPoints();
-  }, [clearPoints]);
+  };
 
   const entropyProgress = Math.min((points.length / ENTROPY_TARGET) * 100, 100);
 
@@ -87,15 +79,21 @@ const Index = () => {
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <div className="w-full h-96 flex items-center justify-center">
           <Roulette3D
-            targetNumber={result}
-            isSpinning={isSpinning}
             min={min}
             max={max}
-            onSpinEnd={handleSpinEnd}
           />
         </div>
 
         <div className="space-y-6">
+          {result !== null && (
+            <Card className="bg-gray-800 border-yellow-400 text-white">
+              <CardHeader className="text-center">
+                <CardDescription>The generated number is</CardDescription>
+                <CardTitle className="text-5xl font-bold text-yellow-400">{result}</CardTitle>
+              </CardHeader>
+            </Card>
+          )}
+
           <Card className="bg-gray-800 border-gray-700 text-white">
             <CardHeader>
               <CardTitle className="text-yellow-400">Settings</CardTitle>
@@ -103,15 +101,15 @@ const Index = () => {
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="min">Min Number</Label>
-                <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isSpinning} />
+                <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="max">Max Number</Label>
-                <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isSpinning} />
+                <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="excluded">Lucky Number (Exclude)</Label>
-                <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isSpinning} />
+                <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" />
               </div>
             </CardContent>
           </Card>
@@ -126,8 +124,8 @@ const Index = () => {
                 <EntropyCanvas width={500} height={192} points={points} />
               </div>
               <Progress value={entropyProgress} className="w-full [&>div]:bg-yellow-400" />
-              <Button onClick={handleGenerate} className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold" disabled={isSpinning || entropyProgress < 100}>
-                {isSpinning ? 'Spinning...' : 'Spin the Wheel'}
+              <Button onClick={handleGenerate} className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold" disabled={entropyProgress < 100}>
+                Generate Number
               </Button>
             </CardContent>
           </Card>

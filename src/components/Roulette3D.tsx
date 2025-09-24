@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useMemo, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import React, { useMemo, useRef } from 'react';
+import { Canvas } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -10,22 +10,15 @@ const getNumberColor = (num: number) => {
   return '#1F2937'; // gray-800
 };
 
-// Easing function for smooth animation
-const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-
 // --- Component Prop Types ---
 interface WheelProps {
   min: number;
   max: number;
-  isSpinning: boolean;
-  targetNumber: number | null;
-  onSpinEnd: () => void;
 }
 
 // --- 3D Components ---
-const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }: WheelProps) => {
+const Wheel = ({ min, max }: WheelProps) => {
   const wheelRef = useRef<THREE.Group>(null);
-  const [animation, setAnimation] = useState({ active: false, startTime: 0, startRotation: 0, targetRotation: 0 });
 
   const numbers = useMemo(() => {
     if (typeof min !== 'number' || typeof max !== 'number' || min >= max) {
@@ -35,41 +28,6 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }: WheelProps) =>
   }, [min, max]);
 
   const angleStep = numbers.length > 0 ? (2 * Math.PI) / numbers.length : 0;
-
-  useEffect(() => {
-    if (isSpinning && targetNumber !== null && numbers.length > 0 && wheelRef.current) {
-      const targetIndex = numbers.indexOf(targetNumber);
-      if (targetIndex === -1) return;
-
-      const currentRotation = wheelRef.current.rotation.z;
-      const fullSpins = 8 * (2 * Math.PI);
-      const targetAngle = -(targetIndex * angleStep);
-      const finalRotation = currentRotation - (currentRotation % (2 * Math.PI)) + fullSpins + targetAngle;
-
-      setAnimation({
-        active: true,
-        startTime: Date.now(),
-        startRotation: currentRotation,
-        targetRotation: finalRotation,
-      });
-    }
-  }, [isSpinning, targetNumber, numbers, angleStep]);
-
-  useFrame(() => {
-    if (!animation.active || !wheelRef.current) return;
-
-    const duration = 8000; // 8 seconds
-    const elapsedTime = Date.now() - animation.startTime;
-    const progress = Math.min(elapsedTime / duration, 1);
-    const easedProgress = easeOutCubic(progress);
-
-    wheelRef.current.rotation.z = animation.startRotation + (animation.targetRotation - animation.startRotation) * easedProgress;
-
-    if (progress >= 1) {
-      setAnimation({ ...animation, active: false });
-      onSpinEnd();
-    }
-  });
 
   if (numbers.length === 0) {
     return null;
