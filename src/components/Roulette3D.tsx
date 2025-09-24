@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
-import { Howl } from 'howler';
 
 // --- Helper Functions ---
 const getNumberColor = (num: number) => {
@@ -28,26 +27,6 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }: WheelProps) =>
   const wheelRef = useRef<THREE.Group>(null);
   const [animation, setAnimation] = useState({ active: false, startTime: 0, startRotation: 0, targetRotation: 0 });
 
-  const { spinSound, ballSound } = useMemo(() => {
-    const spin = new Howl({
-      src: ['/sounds/roulette-spin.mp3'],
-      loop: true,
-      volume: 0.5,
-    });
-    const ball = new Howl({
-      src: ['/sounds/roulette-ball.mp3'],
-      volume: 0.8,
-    });
-    return { spinSound: spin, ballSound: ball };
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      spinSound.unload();
-      ballSound.unload();
-    };
-  }, [spinSound, ballSound]);
-
   const numbers = useMemo(() => {
     if (typeof min !== 'number' || typeof max !== 'number' || min >= max) {
       return [];
@@ -59,7 +38,6 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }: WheelProps) =>
 
   useEffect(() => {
     if (isSpinning && targetNumber !== null && numbers.length > 0 && wheelRef.current) {
-      spinSound.play();
       const targetIndex = numbers.indexOf(targetNumber);
       if (targetIndex === -1) return;
 
@@ -75,7 +53,7 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }: WheelProps) =>
         targetRotation: finalRotation,
       });
     }
-  }, [isSpinning, targetNumber, numbers, angleStep, spinSound]);
+  }, [isSpinning, targetNumber, numbers, angleStep]);
 
   useFrame(() => {
     if (!animation.active || !wheelRef.current) return;
@@ -89,8 +67,6 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }: WheelProps) =>
 
     if (progress >= 1) {
       setAnimation({ ...animation, active: false });
-      spinSound.stop();
-      ballSound.play();
       onSpinEnd();
     }
   });
