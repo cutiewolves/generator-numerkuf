@@ -127,22 +127,51 @@ const Index = () => {
         <p className="text-gray-400">Your mouse movements fuel true randomness.</p>
       </div>
 
-      {/* Placeholder for the roulette animation */}
       <div className="w-full max-w-4xl h-48">
-        {!isFullScreen && (
-          <motion.div key={rouletteKey} layoutId="roulette-container" className="w-full h-full">
-            <CaseOpening 
-              min={min} 
-              max={max} 
-              result={result}
-              onSpinComplete={onSpinComplete}
-              shouldSpin={isSpinning}
-              isFullScreen={false}
-              displayNumbers={displayNumbers}
-              winningIndex={winningIndex}
-            />
-          </motion.div>
-        )}
+        <AnimatePresence initial={false}>
+          {isFullScreen ? (
+            <motion.div
+              key="fullscreen"
+              className="fixed inset-0 z-50 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                layoutId="roulette-container"
+                className="w-full"
+              >
+                <CaseOpening 
+                  min={min} 
+                  max={max} 
+                  result={result}
+                  onSpinComplete={onSpinComplete}
+                  shouldSpin={isSpinning}
+                  isFullScreen={true}
+                  displayNumbers={displayNumbers}
+                  winningIndex={winningIndex}
+                />
+              </motion.div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={rouletteKey}
+              layoutId="roulette-container"
+              className="w-full h-full"
+            >
+              <CaseOpening 
+                min={min} 
+                max={max} 
+                result={result}
+                onSpinComplete={onSpinComplete}
+                shouldSpin={isSpinning}
+                isFullScreen={false}
+                displayNumbers={displayNumbers}
+                winningIndex={winningIndex}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className={cn("w-full max-w-4xl mx-auto flex flex-col gap-8 items-center transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
@@ -200,33 +229,6 @@ const Index = () => {
       <div className={cn("absolute bottom-0 left-0 w-full transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
         <MadeWithDyad />
       </div>
-
-      <AnimatePresence>
-        {isFullScreen && (
-          <motion.div
-            className="fixed inset-0 z-50 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              layoutId="roulette-container"
-              className="w-full"
-            >
-              <CaseOpening 
-                min={min} 
-                max={max} 
-                result={result}
-                onSpinComplete={onSpinComplete}
-                shouldSpin={isSpinning}
-                isFullScreen={true}
-                displayNumbers={displayNumbers}
-                winningIndex={winningIndex}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
