@@ -110,6 +110,7 @@ const Index = () => {
               result={result}
               onSpinComplete={onSpinComplete}
               shouldSpin={isSpinning}
+              isFullScreen={false}
             />
           </motion.div>
         )}
@@ -181,7 +182,7 @@ const Index = () => {
           >
             <motion.div
               layoutId="roulette-container"
-              className="w-full max-w-6xl"
+              className="w-full"
             >
               <CaseOpening 
                 min={min} 
@@ -190,6 +191,7 @@ const Index = () => {
                 result={result}
                 onSpinComplete={onSpinComplete}
                 shouldSpin={isSpinning}
+                isFullScreen={true}
               />
             </motion.div>
           </motion.div>

@@ -9,12 +9,11 @@ interface CaseOpeningProps {
   result: number | null;
   onSpinComplete: () => void;
   shouldSpin: boolean;
+  isFullScreen?: boolean;
 }
 
 const TOTAL_ITEMS = 100;
 const WINNING_INDEX_AREA = { min: 80, max: 90 };
-const ITEM_WIDTH_PX = 128; // w-32
-const ITEM_GAP_PX = 8; // gap-x-2
 
 const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -26,11 +25,14 @@ const generateRandomNumber = (min: number, max: number, excluded: number) => {
   return num;
 };
 
-const CaseOpening = ({ min, max, excluded, result, onSpinComplete, shouldSpin }: CaseOpeningProps) => {
+const CaseOpening = ({ min, max, excluded, result, onSpinComplete, shouldSpin, isFullScreen = false }: CaseOpeningProps) => {
   const controls = useAnimationControls();
   const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
   const [winningIndex, setWinningIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const ITEM_WIDTH_PX = isFullScreen ? 256 : 128;
+  const ITEM_GAP_PX = isFullScreen ? 16 : 8;
 
   useEffect(() => {
     if (result === null) {
@@ -71,7 +73,7 @@ const CaseOpening = ({ min, max, excluded, result, onSpinComplete, shouldSpin }:
     };
 
     spin();
-  }, [shouldSpin, displayNumbers, winningIndex, controls, onSpinComplete]);
+  }, [shouldSpin, displayNumbers, winningIndex, controls, onSpinComplete, ITEM_WIDTH_PX, ITEM_GAP_PX]);
 
   const getItemColor = (num: number) => {
     const range = max - min;
@@ -85,13 +87,13 @@ const CaseOpening = ({ min, max, excluded, result, onSpinComplete, shouldSpin }:
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-48 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 overflow-hidden flex items-center">
+    <div ref={containerRef} className={cn("relative w-full bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 overflow-hidden flex items-center", isFullScreen ? "h-80" : "h-48")}>
       <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-full w-1 bg-yellow-400 z-10 shadow-lg" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-b-8 border-b-yellow-400 z-10" />
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-yellow-400 z-10" />
 
       <motion.div
-        className="flex items-center gap-x-2"
+        className={cn("flex items-center", isFullScreen ? "gap-x-4" : "gap-x-2")}
         animate={controls}
         initial={{ x: 0 }}
       >
@@ -99,11 +101,14 @@ const CaseOpening = ({ min, max, excluded, result, onSpinComplete, shouldSpin }:
           <div
             key={`${num}-${index}`}
             className={cn(
-              'w-32 h-32 flex-shrink-0 rounded-md flex flex-col items-center justify-center border-2',
-              getItemColor(num)
+              'flex-shrink-0 rounded-md flex flex-col items-center justify-center border-2',
+              getItemColor(num),
+              isFullScreen ? "w-64 h-64" : "w-32 h-32"
             )}
           >
-            <span className="text-4xl font-bold text-white">{num}</span>
+            <span className={cn("font-bold text-white", isFullScreen ? "text-7xl" : "text-4xl")}>
+              {num}
+            </span>
           </div>
         ))}
       </motion.div>
