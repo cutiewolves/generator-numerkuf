@@ -11,9 +11,10 @@ interface CaseOpeningProps {
   isFullScreen?: boolean;
   displayNumbers: number[];
   winningIndex: number;
+  isTransitioning?: boolean;
 }
 
-const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScreen = false, displayNumbers, winningIndex }: CaseOpeningProps) => {
+const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScreen = false, displayNumbers, winningIndex, isTransitioning = false }: CaseOpeningProps) => {
   const controls = useAnimationControls();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +71,7 @@ const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScree
         className={cn("flex items-center", isFullScreen ? "gap-x-4" : "gap-x-2")}
         animate={controls}
         initial={{ x: 0 }}
+        style={{ opacity: isTransitioning ? 0 : 1, transition: 'opacity 0.2s ease-in-out' }}
       >
         {displayNumbers.map((num, index) => (
           <div

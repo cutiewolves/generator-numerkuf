@@ -40,6 +40,7 @@ const Index = () => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [rouletteKey, setRouletteKey] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
   const [winningIndex, setWinningIndex] = useState(0);
@@ -136,6 +137,8 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              onAnimationStart={() => setIsTransitioning(true)}
+              onAnimationComplete={() => setIsTransitioning(false)}
             >
               <motion.div
                 layoutId="roulette-container"
@@ -150,6 +153,7 @@ const Index = () => {
                   isFullScreen={true}
                   displayNumbers={displayNumbers}
                   winningIndex={winningIndex}
+                  isTransitioning={isTransitioning}
                 />
               </motion.div>
             </motion.div>
@@ -158,6 +162,8 @@ const Index = () => {
               key={rouletteKey}
               layoutId="roulette-container"
               className="w-full h-full"
+              onLayoutAnimationStart={() => setIsTransitioning(true)}
+              onLayoutAnimationComplete={() => setIsTransitioning(false)}
             >
               <CaseOpening 
                 min={min} 
@@ -168,6 +174,7 @@ const Index = () => {
                 isFullScreen={false}
                 displayNumbers={displayNumbers}
                 winningIndex={winningIndex}
+                isTransitioning={isTransitioning}
               />
             </motion.div>
           )}
