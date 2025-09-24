@@ -19,6 +19,18 @@ const seededRandom = (seed: number) => {
 };
 
 const ENTROPY_TARGET = 100; // Number of mouse points needed
+const TOTAL_ITEMS = 100;
+const WINNING_INDEX_AREA = { min: 80, max: 90 };
+
+const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+const generateRandomNumber = (min: number, max: number, excluded: number) => {
+  let num;
+  do {
+    num = getRandomInt(min, max);
+  } while (num === excluded);
+  return num;
+};
 
 const Index = () => {
   const [min, setMin] = useState(1);
@@ -27,6 +39,9 @@ const Index = () => {
   const [result, setResult] = useState<number | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+
+  const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
+  const [winningIndex, setWinningIndex] = useState(0);
 
   const entropyRef = useRef<HTMLDivElement>(null);
   const { points, clearPoints } = useMouseEntropy(entropyRef, !isSpinning && !isFullScreen);
@@ -80,6 +95,17 @@ const Index = () => {
     const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
     const finalNumber = possibleNumbers[randomIndex];
 
+    // Generate the display numbers and winning index here
+    const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
+    const newNumbers = Array.from({ length: TOTAL_ITEMS }, (_, index) => {
+      if (index === winnerIndex) {
+        return finalNumber;
+      }
+      return generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
+    });
+
+    setDisplayNumbers(newNumbers);
+    setWinningIndex(winnerIndex);
     setResult(finalNumber);
     setIsFullScreen(true); // Start fullscreen animation
     clearPoints();
@@ -106,11 +132,12 @@ const Index = () => {
             <CaseOpening 
               min={min} 
               max={max} 
-              excluded={excluded} 
               result={result}
               onSpinComplete={onSpinComplete}
               shouldSpin={isSpinning}
               isFullScreen={false}
+              displayNumbers={displayNumbers}
+              winningIndex={winningIndex}
             />
           </motion.div>
         )}
@@ -187,11 +214,12 @@ const Index = () => {
               <CaseOpening 
                 min={min} 
                 max={max} 
-                excluded={excluded} 
                 result={result}
                 onSpinComplete={onSpinComplete}
                 shouldSpin={isSpinning}
                 isFullScreen={true}
+                displayNumbers={displayNumbers}
+                winningIndex={winningIndex}
               />
             </motion.div>
           </motion.div>

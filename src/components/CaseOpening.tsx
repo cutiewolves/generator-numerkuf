@@ -1,79 +1,53 @@
-import { useMemo, useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface CaseOpeningProps {
   min: number;
   max: number;
-  excluded: number;
   result: number | null;
   onSpinComplete: () => void;
   shouldSpin: boolean;
   isFullScreen?: boolean;
+  displayNumbers: number[];
+  winningIndex: number;
 }
 
-const TOTAL_ITEMS = 100;
-const WINNING_INDEX_AREA = { min: 80, max: 90 };
-
-const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-const generateRandomNumber = (min: number, max: number, excluded: number) => {
-  let num;
-  do {
-    num = getRandomInt(min, max);
-  } while (num === excluded);
-  return num;
-};
-
-const CaseOpening = ({ min, max, excluded, result, onSpinComplete, shouldSpin, isFullScreen = false }: CaseOpeningProps) => {
+const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScreen = false, displayNumbers, winningIndex }: CaseOpeningProps) => {
   const controls = useAnimationControls();
-  const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
-  const [winningIndex, setWinningIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const ITEM_WIDTH_PX = isFullScreen ? 256 : 128;
   const ITEM_GAP_PX = isFullScreen ? 16 : 8;
 
   useEffect(() => {
-    if (result === null) {
-      setDisplayNumbers([]);
-      return;
-    }
-
-    const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
-    setWinningIndex(winnerIndex);
-
-    const newNumbers = Array.from({ length: TOTAL_ITEMS }, (_, index) => {
-      if (index === winnerIndex) {
-        return result;
-      }
-      return generateRandomNumber(min, max, excluded);
-    });
-    setDisplayNumbers(newNumbers);
-  }, [result, min, max, excluded]);
-
-  useEffect(() => {
-    if (!shouldSpin || displayNumbers.length === 0 || !containerRef.current) return;
+    if (displayNumbers.length === 0 || !containerRef.current) return;
 
     const itemTotalWidth = ITEM_WIDTH_PX + ITEM_GAP_PX;
     const containerWidth = containerRef.current.offsetWidth;
 
     const targetOffset = winningIndex * itemTotalWidth;
     const centerOffset = containerWidth / 2 - ITEM_WIDTH_PX / 2;
-    const jitter = (Math.random() - 0.5) * (ITEM_WIDTH_PX * 0.8);
-    const finalX = -(targetOffset - centerOffset + jitter);
+    const finalX = -(targetOffset - centerOffset);
 
-    const spin = async () => {
-      controls.set({ x: 0 });
-      await controls.start({
-        x: finalX,
-        transition: { duration: 7, ease: 'easeOut' },
-      });
-      onSpinComplete();
-    };
+    if (shouldSpin) {
+      const spin = async () => {
+        controls.set({ x: 0 });
+        await controls.start({
+          x: finalX,
+          transition: { duration: 7, ease: 'easeOut' },
+        });
+        onSpinComplete();
+      };
 
-    spin();
-  }, [shouldSpin, displayNumbers, winningIndex, controls, onSpinComplete, ITEM_WIDTH_PX, ITEM_GAP_PX]);
+      spin();
+    } else {
+      // If not spinning, but we have a result, set the final position immediately.
+      if (result !== null) {
+        controls.set({ x: finalX });
+      }
+    }
+  }, [shouldSpin, displayNumbers, winningIndex, result, controls, onSpinComplete, ITEM_WIDTH_PX, ITEM_GAP_PX]);
 
   const getItemColor = (num: number) => {
     const range = max - min;
