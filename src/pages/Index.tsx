@@ -10,7 +10,7 @@ import EntropyCanvas from '@/components/EntropyCanvas';
 import { Progress } from '@/components/ui/progress';
 import CaseOpening from '@/components/CaseOpening';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -99,25 +99,21 @@ const Index = () => {
         <p className="text-gray-400">Your mouse movements fuel true randomness.</p>
       </div>
 
-      <motion.div 
-        layout
-        transition={{ type: "tween", ease: "easeInOut", duration: 0.6 }}
-        className={cn(
-          "w-full flex items-center justify-center",
-          isFullScreen 
-            ? "fixed inset-0 z-50 bg-gray-900" 
-            : "max-w-4xl"
+      {/* Placeholder for the roulette animation */}
+      <div className="w-full max-w-4xl h-48">
+        {!isFullScreen && (
+          <motion.div layoutId="roulette-container" className="w-full h-full">
+            <CaseOpening 
+              min={min} 
+              max={max} 
+              excluded={excluded} 
+              result={result}
+              onSpinComplete={onSpinComplete}
+              shouldSpin={isSpinning}
+            />
+          </motion.div>
         )}
-      >
-        <CaseOpening 
-          min={min} 
-          max={max} 
-          excluded={excluded} 
-          result={result}
-          onSpinComplete={onSpinComplete}
-          shouldSpin={isSpinning}
-        />
-      </motion.div>
+      </div>
 
       <div className={cn("w-full max-w-4xl mx-auto flex flex-col gap-8 items-center transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -174,6 +170,31 @@ const Index = () => {
       <div className={cn("absolute bottom-0 left-0 w-full transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
         <MadeWithDyad />
       </div>
+
+      <AnimatePresence>
+        {isFullScreen && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              layoutId="roulette-container"
+              className="w-full max-w-6xl"
+            >
+              <CaseOpening 
+                min={min} 
+                max={max} 
+                excluded={excluded} 
+                result={result}
+                onSpinComplete={onSpinComplete}
+                shouldSpin={isSpinning}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
