@@ -1,4 +1,4 @@
-import { useState, useRef, Suspense } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,11 +23,14 @@ const Index = () => {
   const [max, setMax] = useState(36);
   const [excluded, setExcluded] = useState(7);
   const [result, setResult] = useState<number | null>(null);
+  const [isSpinning, setIsSpinning] = useState(false);
   
   const entropyRef = useRef<HTMLDivElement>(null);
   const { points, clearPoints } = useMouseEntropy(entropyRef);
 
   const handleGenerate = () => {
+    if (isSpinning) return;
+
     const parsedMin = parseInt(String(min), 10);
     const parsedMax = parseInt(String(max), 10);
     const parsedExcluded = parseInt(String(excluded), 10);
@@ -57,6 +60,7 @@ const Index = () => {
     const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
     const finalNumber = possibleNumbers[randomIndex];
 
+    setIsSpinning(true);
     setResult(finalNumber);
     clearPoints();
   };
@@ -73,8 +77,14 @@ const Index = () => {
       </div>
 
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <div className="w-full h-96 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 overflow-hidden">
-          <RouletteWheel min={min} max={max} excluded={excluded} />
+        <div className="w-full h-96 flex items-center justify-center bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 overflow-hidden">
+          <RouletteWheel 
+            min={min} 
+            max={max} 
+            excluded={excluded} 
+            result={result}
+            onSpinComplete={() => setIsSpinning(false)}
+          />
         </div>
 
         <div className="space-y-6">
@@ -94,15 +104,15 @@ const Index = () => {
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="min">Min Number</Label>
-                <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" />
+                <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isSpinning} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="max">Max Number</Label>
-                <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" />
+                <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isSpinning} />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="excluded">Lucky Number (Exclude)</Label>
-                <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" />
+                <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isSpinning} />
               </div>
             </CardContent>
           </Card>
@@ -117,8 +127,8 @@ const Index = () => {
                 <EntropyCanvas width={500} height={192} points={points} />
               </div>
               <Progress value={entropyProgress} className="w-full [&>div]:bg-yellow-400" />
-              <Button onClick={handleGenerate} className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold" disabled={entropyProgress < 100}>
-                Generate Number
+              <Button onClick={handleGenerate} className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold" disabled={entropyProgress < 100 || isSpinning}>
+                {isSpinning ? 'Spinning...' : 'Generate Number'}
               </Button>
             </CardContent>
           </Card>
