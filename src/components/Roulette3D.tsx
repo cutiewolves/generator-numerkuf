@@ -27,14 +27,21 @@ const getNumberColor = (num: number) => {
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 // --- 3D Components ---
-const Wheel = ({ numbers, isSpinning, targetNumber, onSpinEnd }) => {
+const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }) => {
   const wheelRef = useRef<THREE.Group>(null!);
   const [animation, setAnimation] = useState({ active: false, startTime: 0, startRotation: 0, targetRotation: 0 });
 
-  const angleStep = (2 * Math.PI) / numbers.length;
+  const numbers = useMemo(() => {
+    if (typeof min !== 'number' || typeof max !== 'number' || min >= max) {
+      return [];
+    }
+    return Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  }, [min, max]);
+
+  const angleStep = numbers.length > 0 ? (2 * Math.PI) / numbers.length : 0;
 
   useEffect(() => {
-    if (isSpinning && targetNumber !== null) {
+    if (isSpinning && targetNumber !== null && numbers.length > 0) {
       spinSound.play();
       const targetIndex = numbers.indexOf(targetNumber);
       if (targetIndex === -1) return;
@@ -70,6 +77,10 @@ const Wheel = ({ numbers, isSpinning, targetNumber, onSpinEnd }) => {
       onSpinEnd();
     }
   });
+
+  if (numbers.length === 0) {
+    return null; // Don't render anything if numbers are invalid
+  }
 
   return (
     <group ref={wheelRef}>
