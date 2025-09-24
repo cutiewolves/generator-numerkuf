@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import EntropyCanvas from '@/components/EntropyCanvas';
 import { Progress } from '@/components/ui/progress';
 import CaseOpening from '@/components/CaseOpening';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -36,6 +37,16 @@ const Index = () => {
       setIsSpinning(false);
     }, 2000); // Wait 2 seconds before closing fullscreen
   }, []);
+
+  useEffect(() => {
+    if (isFullScreen && !isSpinning) {
+      // Delay starting the spin to allow the fullscreen animation to finish
+      const timer = setTimeout(() => {
+        setIsSpinning(true);
+      }, 700); // A delay to let the "morph" animation play out
+      return () => clearTimeout(timer);
+    }
+  }, [isFullScreen, isSpinning]);
 
   const handleGenerate = () => {
     if (isSpinning || isFullScreen) return;
@@ -74,12 +85,6 @@ const Index = () => {
     clearPoints();
   };
 
-  const handleTransitionEnd = () => {
-    if (isFullScreen && !isSpinning) {
-      setIsSpinning(true); // Start spinning after fullscreen animation
-    }
-  };
-
   const entropyProgress = Math.min((points.length / ENTROPY_TARGET) * 100, 100);
   const isBusy = isSpinning || isFullScreen;
   const buttonDisabled = isBusy || entropyProgress < 100;
@@ -94,12 +99,13 @@ const Index = () => {
         <p className="text-gray-400">Your mouse movements fuel true randomness.</p>
       </div>
 
-      <div 
-        onTransitionEnd={handleTransitionEnd}
+      <motion.div 
+        layout
+        transition={{ type: "spring", stiffness: 60, damping: 20 }}
         className={cn(
-          "transition-all duration-500 ease-in-out w-full flex items-center justify-center",
+          "w-full flex items-center justify-center",
           isFullScreen 
-            ? "fixed inset-0 z-50" 
+            ? "fixed inset-0 z-50 bg-gray-900" 
             : "max-w-4xl"
         )}
       >
@@ -111,7 +117,7 @@ const Index = () => {
           onSpinComplete={onSpinComplete}
           shouldSpin={isSpinning}
         />
-      </div>
+      </motion.div>
 
       <div className={cn("w-full max-w-4xl mx-auto flex flex-col gap-8 items-center transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
