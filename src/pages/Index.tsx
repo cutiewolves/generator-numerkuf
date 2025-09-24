@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,7 @@ import { showError } from '@/utils/toast';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import EntropyCanvas from '@/components/EntropyCanvas';
 import { Progress } from '@/components/ui/progress';
-import { Dices } from 'lucide-react';
+import RouletteWheel from '@/components/RouletteWheel';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -73,12 +73,10 @@ const Index = () => {
       </div>
 
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <div className="w-full h-96 flex items-center justify-center bg-gray-800 rounded-lg border-2 border-dashed border-gray-700">
-          <div className="text-center text-gray-500">
-            <Dices className="mx-auto h-12 w-12 mb-4" />
-            <p className="text-lg font-semibold">Random Number Generator</p>
-            <p className="text-sm">The 3D wheel is temporarily disabled to resolve a core application error.</p>
-          </div>
+        <div className="w-full h-96 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 overflow-hidden">
+          <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-gray-500">Loading 3D Wheel...</div>}>
+            <RouletteWheel min={min} max={max} excluded={excluded} />
+          </Suspense>
         </div>
 
         <div className="space-y-6">
