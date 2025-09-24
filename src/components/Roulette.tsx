@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface RouletteProps {
@@ -10,48 +10,70 @@ interface RouletteProps {
 }
 
 const Roulette = ({ targetNumber, isSpinning, min, max, onSpinEnd }: RouletteProps) => {
-  const [displayNumber, setDisplayNumber] = useState<number | string>('?');
-  const intervalRef = useRef<number | null>(null);
+  const [highlightedNumber, setHighlightedNumber] = useState<number | null>(null);
+  
+  const numbers = Array.from({ length: Math.min(max - min + 1, 36) }, (_, i) => min + i);
+  const angleStep = 360 / numbers.length;
+  const radius = 140; // In pixels
 
   useEffect(() => {
     if (isSpinning) {
-      setDisplayNumber('?');
       let spinCount = 0;
-      const totalSpins = 30; // Controls animation duration
-      const spinDuration = 100;
+      const totalSpins = 50;
+      const spinDuration = 80;
 
-      intervalRef.current = window.setInterval(() => {
-        const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
-        setDisplayNumber(randomNum);
+      const interval = setInterval(() => {
+        const randomIndex = Math.floor(Math.random() * numbers.length);
+        setHighlightedNumber(numbers[randomIndex]);
         spinCount++;
+
         if (spinCount >= totalSpins) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          setDisplayNumber(targetNumber ?? '?');
+          clearInterval(interval);
+          setHighlightedNumber(targetNumber);
           onSpinEnd();
         }
       }, spinDuration);
-    }
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isSpinning, targetNumber, min, max, onSpinEnd]);
+      return () => clearInterval(interval);
+    }
+  }, [isSpinning, targetNumber, numbers, onSpinEnd]);
 
   return (
-    <div className="w-64 h-64 bg-gray-800 border-4 border-yellow-400 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden">
-      <div className="absolute inset-0 bg-black opacity-20"></div>
-      <span
-        className={cn(
-          'text-7xl font-bold text-white transition-all duration-100 z-10',
-          isSpinning ? 'text-yellow-400 animate-pulse' : 'text-green-400',
-          !targetNumber && !isSpinning ? 'text-white' : ''
-        )}
-        style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.5)' }}
-      >
-        {displayNumber}
-      </span>
+    <div className="w-80 h-80 md:w-96 md:h-96 rounded-full bg-gray-900 border-8 border-yellow-500 relative flex items-center justify-center shadow-2xl">
+      <div className="absolute w-full h-full rounded-full border-4 border-gray-700"></div>
+      <div className="absolute w-2/3 h-2/3 rounded-full bg-gray-800 border-4 border-gray-600"></div>
+      
+      {numbers.map((num, index) => {
+        const angle = angleStep * index;
+        const isHighlighted = num === highlightedNumber;
+        const isTarget = num === targetNumber && !isSpinning;
+
+        return (
+          <div
+            key={num}
+            className="absolute w-10 h-10"
+            style={{
+              transform: `rotate(${angle}deg) translate(${radius}px) rotate(-${angle}deg)`,
+            }}
+          >
+            <div
+              className={cn(
+                "w-full h-full rounded-full flex items-center justify-center font-bold transition-all duration-100",
+                isHighlighted ? "bg-yellow-400 text-black scale-125 z-20" : "bg-gray-700 text-white",
+                isTarget && "bg-green-500 text-white scale-125 z-20"
+              )}
+            >
+              {num}
+            </div>
+          </div>
+        );
+      })}
+
+      <div className="z-10 w-24 h-24 bg-gray-900 rounded-full flex items-center justify-center border-4 border-yellow-500">
+        <span className="text-4xl font-bold text-white">
+          {isSpinning ? '?' : targetNumber ?? '?'}
+        </span>
+      </div>
     </div>
   );
 };
