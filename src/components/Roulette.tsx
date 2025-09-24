@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface RouletteProps {
@@ -11,31 +11,50 @@ interface RouletteProps {
 
 const Roulette = ({ targetNumber, isSpinning, min, max, onSpinEnd }: RouletteProps) => {
   const [highlightedNumber, setHighlightedNumber] = useState<number | null>(null);
-  
+  const timeoutRef = useRef<number | null>(null);
+
   const numbers = Array.from({ length: Math.min(max - min + 1, 36) }, (_, i) => min + i);
   const angleStep = 360 / numbers.length;
   const radius = 140; // In pixels
 
   useEffect(() => {
     if (isSpinning) {
-      let spinCount = 0;
-      const totalSpins = 50;
-      const spinDuration = 80;
+      const startTime = Date.now();
+      const totalDuration = 8000; // 8 seconds total spin time
 
-      const interval = setInterval(() => {
-        const randomIndex = Math.floor(Math.random() * numbers.length);
-        setHighlightedNumber(numbers[randomIndex]);
-        spinCount++;
+      const spin = () => {
+        const elapsedTime = Date.now() - startTime;
 
-        if (spinCount >= totalSpins) {
-          clearInterval(interval);
+        // Stop the animation when the total duration is reached
+        if (elapsedTime >= totalDuration) {
           setHighlightedNumber(targetNumber);
           onSpinEnd();
+          return;
         }
-      }, spinDuration);
 
-      return () => clearInterval(interval);
+        // Pick a random number to display during the spin
+        const randomIndex = Math.floor(Math.random() * numbers.length);
+        setHighlightedNumber(numbers[randomIndex]);
+
+        // Calculate the delay for the next number change.
+        // The delay increases as we get closer to the end, creating a slowdown effect.
+        const progress = elapsedTime / totalDuration;
+        const initialDelay = 50; // Fast at the beginning
+        const finalDelay = 700;  // Slow at the end
+        const delay = initialDelay + (finalDelay - initialDelay) * (progress * progress);
+
+        timeoutRef.current = window.setTimeout(spin, delay);
+      };
+
+      spin();
     }
+
+    // Cleanup function to clear the timeout if the component unmounts or spinning stops
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [isSpinning, targetNumber, numbers, onSpinEnd]);
 
   return (
