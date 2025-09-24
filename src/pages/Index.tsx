@@ -74,9 +74,7 @@ const Index = () => {
 
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <div className="w-full h-96 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 overflow-hidden">
-          <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-gray-500">Loading 3D Wheel...</div>}>
-            <RouletteWheel min={min} max={max} excluded={excluded} />
-          </Suspense>
+          <RouletteWheel min={min} max={max} excluded={excluded} />
         </div>
 
         <div className="space-y-6">
