@@ -130,9 +130,8 @@ const Index = () => {
       {/* Placeholder for the roulette animation */}
       <div className="w-full max-w-4xl h-48">
         {!isFullScreen && (
-          <motion.div layoutId="roulette-container" className="w-full h-full">
+          <motion.div key={rouletteKey} layoutId="roulette-container" className="w-full h-full">
             <CaseOpening 
-              key={rouletteKey}
               min={min} 
               max={max} 
               result={result}
