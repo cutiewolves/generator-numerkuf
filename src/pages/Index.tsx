@@ -4,11 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useMouseEntropy } from '@/hooks/useMouseEntropy';
-import Roulette3D from '@/components/Roulette3D';
 import { showError } from '@/utils/toast';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import EntropyCanvas from '@/components/EntropyCanvas';
 import { Progress } from '@/components/ui/progress';
+import { Dices } from 'lucide-react';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -38,10 +38,6 @@ const Index = () => {
     }
     if (parsedMin >= parsedMax) {
       showError('Min number must be less than max number.');
-      return;
-    }
-    if (parsedMax - parsedMin > 35) {
-      showError('The range (max - min) cannot be greater than 35 for the roulette wheel.');
       return;
     }
 
@@ -77,11 +73,12 @@ const Index = () => {
       </div>
 
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <div className="w-full h-96 flex items-center justify-center">
-          <Roulette3D
-            min={min}
-            max={max}
-          />
+        <div className="w-full h-96 flex items-center justify-center bg-gray-800 rounded-lg border-2 border-dashed border-gray-700">
+          <div className="text-center text-gray-500">
+            <Dices className="mx-auto h-12 w-12 mb-4" />
+            <p className="text-lg font-semibold">Random Number Generator</p>
+            <p className="text-sm">The 3D wheel is temporarily disabled to resolve a core application error.</p>
+          </div>
         </div>
 
         <div className="space-y-6">
