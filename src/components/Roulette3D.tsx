@@ -26,9 +26,18 @@ const getNumberColor = (num: number) => {
 // Easing function for smooth animation
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
+// --- Component Prop Types ---
+interface WheelProps {
+  min: number;
+  max: number;
+  isSpinning: boolean;
+  targetNumber: number | null;
+  onSpinEnd: () => void;
+}
+
 // --- 3D Components ---
-const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }) => {
-  const wheelRef = useRef<THREE.Group>(null!);
+const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }: WheelProps) => {
+  const wheelRef = useRef<THREE.Group>(null);
   const [animation, setAnimation] = useState({ active: false, startTime: 0, startRotation: 0, targetRotation: 0 });
 
   const numbers = useMemo(() => {
@@ -41,7 +50,7 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }) => {
   const angleStep = numbers.length > 0 ? (2 * Math.PI) / numbers.length : 0;
 
   useEffect(() => {
-    if (isSpinning && targetNumber !== null && numbers.length > 0) {
+    if (isSpinning && targetNumber !== null && numbers.length > 0 && wheelRef.current) {
       spinSound.play();
       const targetIndex = numbers.indexOf(targetNumber);
       if (targetIndex === -1) return;
@@ -61,7 +70,7 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }) => {
   }, [isSpinning, targetNumber, numbers, angleStep]);
 
   useFrame(() => {
-    if (!animation.active) return;
+    if (!animation.active || !wheelRef.current) return;
 
     const duration = 8000; // 8 seconds
     const elapsedTime = Date.now() - animation.startTime;
@@ -79,7 +88,7 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }) => {
   });
 
   if (numbers.length === 0) {
-    return null; // Don't render anything if numbers are invalid
+    return null;
   }
 
   return (
@@ -118,7 +127,7 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }) => {
               anchorX="center"
               anchorY="middle"
             >
-              {num}
+              {String(num)}
             </Text>
           </group>
         );
@@ -132,7 +141,7 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }) => {
   );
 };
 
-const Roulette3D = (props) => {
+const Roulette3D = (props: WheelProps) => {
   return (
     <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
       <ambientLight intensity={0.5} />

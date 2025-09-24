@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -68,10 +68,10 @@ const Index = () => {
     setIsSpinning(true);
   };
 
-  const handleSpinEnd = () => {
+  const handleSpinEnd = useCallback(() => {
     setIsSpinning(false);
     clearPoints();
-  };
+  }, [clearPoints]);
 
   const entropyProgress = Math.min((points.length / ENTROPY_TARGET) * 100, 100);
 

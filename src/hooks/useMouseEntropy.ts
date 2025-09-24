@@ -30,9 +30,9 @@ export function useMouseEntropy(ref: RefObject<HTMLElement>) {
     }
   }, [ref, handleMouseMove]);
 
-  const clearPoints = () => {
+  const clearPoints = useCallback(() => {
     setPoints([]);
-  };
+  }, []);
 
   return { points, clearPoints };
 }
