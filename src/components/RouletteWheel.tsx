@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Text, Cylinder } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 
 interface RouletteWheelProps {
   min: number;
@@ -10,7 +10,7 @@ interface RouletteWheelProps {
 }
 
 const WheelContent = ({ min, max, excluded }: RouletteWheelProps) => {
-  const wheelRef = useRef<THREE.Group>(null!);
+  const wheelRef = useRef<THREE.Group>(null);
 
   // Memoize the list of numbers to display on the wheel
   const numbers = useMemo(() => {
@@ -35,10 +35,11 @@ const WheelContent = ({ min, max, excluded }: RouletteWheelProps) => {
 
   return (
     <group ref={wheelRef}>
-      {/* The main cylinder of the wheel */}
-      <Cylinder args={[radius, radius, 1, numbers.length]} rotation={[Math.PI / 2, 0, 0]}>
+      {/* The main cylinder of the wheel, using a primitive mesh for stability */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[radius, radius, 1, numbers.length > 2 ? numbers.length : 3]} />
         <meshStandardMaterial color="#374151" /> {/* gray-700 */}
-      </Cylinder>
+      </mesh>
       
       {/* The numbers distributed around the wheel */}
       {numbers.map((num, index) => {
@@ -54,6 +55,8 @@ const WheelContent = ({ min, max, excluded }: RouletteWheelProps) => {
             color="#FBBF24" // amber-400
             anchorX="center"
             anchorY="middle"
+            // Disable raycasting to prevent event-related errors on unmount
+            raycast={() => null}
           >
             {num}
           </Text>
