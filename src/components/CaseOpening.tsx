@@ -1,0 +1,110 @@
+import { useMemo, useEffect, useState, useRef } from 'react';
+import { motion, useAnimationControls } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
+interface CaseOpeningProps {
+  min: number;
+  max: number;
+  excluded: number;
+  result: number | null;
+  onSpinComplete: () => void;
+}
+
+const TOTAL_ITEMS = 100;
+const WINNING_INDEX_AREA = { min: 80, max: 90 };
+const ITEM_WIDTH_PX = 128; // w-32
+const ITEM_GAP_PX = 8; // gap-x-2
+
+const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+const generateRandomNumber = (min: number, max: number, excluded: number) => {
+  let num;
+  do {
+    num = getRandomInt(min, max);
+  } while (num === excluded);
+  return num;
+};
+
+const CaseOpening = ({ min, max, excluded, result, onSpinComplete }: CaseOpeningProps) => {
+  const controls = useAnimationControls();
+  const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
+  const [winningIndex, setWinningIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (result === null) return;
+
+    const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
+    setWinningIndex(winnerIndex);
+
+    const newNumbers = Array.from({ length: TOTAL_ITEMS }, (_, index) => {
+      if (index === winnerIndex) {
+        return result;
+      }
+      return generateRandomNumber(min, max, excluded);
+    });
+    setDisplayNumbers(newNumbers);
+  }, [result, min, max, excluded]);
+
+  useEffect(() => {
+    if (displayNumbers.length === 0 || !containerRef.current) return;
+
+    const itemTotalWidth = ITEM_WIDTH_PX + ITEM_GAP_PX;
+    const containerWidth = containerRef.current.offsetWidth;
+
+    const targetOffset = winningIndex * itemTotalWidth;
+    const centerOffset = containerWidth / 2 - ITEM_WIDTH_PX / 2;
+    const jitter = (Math.random() - 0.5) * (ITEM_WIDTH_PX * 0.8);
+    const finalX = -(targetOffset - centerOffset + jitter);
+
+    const spin = async () => {
+      controls.set({ x: 0 });
+      await controls.start({
+        x: finalX,
+        transition: { duration: 7, ease: 'easeOut' },
+      });
+      onSpinComplete();
+    };
+
+    spin();
+  }, [displayNumbers, winningIndex, controls, onSpinComplete]);
+
+  const getItemColor = (num: number) => {
+    const range = max - min;
+    if (range === 0) return 'bg-blue-500/20 border-blue-400';
+    const percentage = (num - min) / range;
+
+    if (percentage > 0.9) return 'bg-yellow-500/20 border-yellow-400';
+    if (percentage > 0.75) return 'bg-red-500/20 border-red-400';
+    if (percentage > 0.5) return 'bg-purple-500/20 border-purple-400';
+    return 'bg-blue-500/20 border-blue-400';
+  };
+
+  return (
+    <div ref={containerRef} className="relative w-full h-48 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 overflow-hidden flex items-center">
+      <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-full w-1 bg-yellow-400 z-10 shadow-lg" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-b-8 border-b-yellow-400 z-10" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-yellow-400 z-10" />
+
+      <motion.div
+        className="flex items-center gap-x-2"
+        animate={controls}
+        initial={{ x: 0 }}
+      >
+        {displayNumbers.map((num, index) => (
+          <div
+            key={`${num}-${index}`}
+            className={cn(
+              'w-32 h-32 flex-shrink-0 rounded-md flex flex-col items-center justify-center border-2',
+              getItemColor(num)
+            )}
+          >
+            <span className="text-4xl font-bold text-white">{num}</span>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
+export default CaseOpening;

@@ -8,7 +8,7 @@ import { showError } from '@/utils/toast';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import EntropyCanvas from '@/components/EntropyCanvas';
 import { Progress } from '@/components/ui/progress';
-import RouletteWheel from '@/components/RouletteWheel';
+import CaseOpening from '@/components/CaseOpening';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -76,18 +76,16 @@ const Index = () => {
         <p className="text-gray-400">Your mouse movements fuel true randomness.</p>
       </div>
 
-      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <div className="w-full h-96 flex items-center justify-center bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 overflow-hidden">
-          <RouletteWheel 
-            min={min} 
-            max={max} 
-            excluded={excluded} 
-            result={result}
-            onSpinComplete={() => setIsSpinning(false)}
-          />
-        </div>
+      <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 items-center">
+        <CaseOpening 
+          min={min} 
+          max={max} 
+          excluded={excluded} 
+          result={result}
+          onSpinComplete={() => setIsSpinning(false)}
+        />
 
-        <div className="space-y-6">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-gray-800 border-gray-700 text-white">
             <CardHeader>
               <CardTitle className="text-yellow-400">Settings</CardTitle>
