@@ -101,7 +101,7 @@ const Index = () => {
 
       <motion.div 
         layout
-        transition={{ type: "spring", stiffness: 60, damping: 20 }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.6 }}
         className={cn(
           "w-full flex items-center justify-center",
           isFullScreen 
