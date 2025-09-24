@@ -39,6 +39,7 @@ const Index = () => {
   const [result, setResult] = useState<number | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [rouletteKey, setRouletteKey] = useState(0);
 
   const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
   const [winningIndex, setWinningIndex] = useState(0);
@@ -50,6 +51,7 @@ const Index = () => {
     setTimeout(() => {
       setIsFullScreen(false);
       setIsSpinning(false);
+      setRouletteKey(prevKey => prevKey + 1); // Force re-mount of the component
     }, 2000); // Wait 2 seconds before closing fullscreen
   }, []);
 
@@ -130,6 +132,7 @@ const Index = () => {
         {!isFullScreen && (
           <motion.div layoutId="roulette-container" className="w-full h-full">
             <CaseOpening 
+              key={rouletteKey}
               min={min} 
               max={max} 
               result={result}
