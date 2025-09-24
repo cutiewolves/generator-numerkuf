@@ -4,18 +4,6 @@ import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { Howl } from 'howler';
 
-// --- Sound Setup ---
-const spinSound = new Howl({
-  src: ['/sounds/roulette-spin.mp3'],
-  loop: true,
-  volume: 0.5,
-});
-
-const ballSound = new Howl({
-  src: ['/sounds/roulette-ball.mp3'],
-  volume: 0.8,
-});
-
 // --- Helper Functions ---
 const getNumberColor = (num: number) => {
   const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
@@ -39,6 +27,26 @@ interface WheelProps {
 const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }: WheelProps) => {
   const wheelRef = useRef<THREE.Group>(null);
   const [animation, setAnimation] = useState({ active: false, startTime: 0, startRotation: 0, targetRotation: 0 });
+
+  const { spinSound, ballSound } = useMemo(() => {
+    const spin = new Howl({
+      src: ['/sounds/roulette-spin.mp3'],
+      loop: true,
+      volume: 0.5,
+    });
+    const ball = new Howl({
+      src: ['/sounds/roulette-ball.mp3'],
+      volume: 0.8,
+    });
+    return { spinSound: spin, ballSound: ball };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      spinSound.unload();
+      ballSound.unload();
+    };
+  }, [spinSound, ballSound]);
 
   const numbers = useMemo(() => {
     if (typeof min !== 'number' || typeof max !== 'number' || min >= max) {
@@ -67,7 +75,7 @@ const Wheel = ({ min, max, isSpinning, targetNumber, onSpinEnd }: WheelProps) =>
         targetRotation: finalRotation,
       });
     }
-  }, [isSpinning, targetNumber, numbers, angleStep]);
+  }, [isSpinning, targetNumber, numbers, angleStep, spinSound]);
 
   useFrame(() => {
     if (!animation.active || !wheelRef.current) return;
