@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
 interface RouletteProps {
@@ -13,7 +13,13 @@ const Roulette = ({ targetNumber, isSpinning, min, max, onSpinEnd }: RoulettePro
   const [highlightedNumber, setHighlightedNumber] = useState<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
 
-  const numbers = Array.from({ length: Math.min(max - min + 1, 36) }, (_, i) => min + i);
+  // Memoize the numbers array to prevent it from being recreated on every render,
+  // which was the cause of the infinite re-render loop.
+  const numbers = useMemo(() => 
+    Array.from({ length: Math.min(max - min + 1, 36) }, (_, i) => min + i),
+    [min, max]
+  );
+
   const angleStep = 360 / numbers.length;
   const radius = 140; // In pixels
 
