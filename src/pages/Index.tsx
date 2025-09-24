@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,18 +25,13 @@ const Index = () => {
   const [excluded, setExcluded] = useState(7);
   const [result, setResult] = useState<number | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [hasSpunOnce, setHasSpunOnce] = useState(false);
   
   const entropyRef = useRef<HTMLDivElement>(null);
   const { points, clearPoints } = useMouseEntropy(entropyRef, !isSpinning);
 
-  // If the user has spun once but starts moving the mouse again,
-  // assume they want to generate new entropy for the next spin.
-  useEffect(() => {
-    if (hasSpunOnce && points.length > 10) {
-      setHasSpunOnce(false);
-    }
-  }, [points, hasSpunOnce]);
+  const onSpinComplete = useCallback(() => {
+    setIsSpinning(false);
+  }, []);
 
   const handleGenerate = () => {
     if (isSpinning) return;
@@ -66,29 +61,18 @@ const Index = () => {
       return;
     }
 
-    let finalNumber;
-    if (!hasSpunOnce) {
-      // First spin or new entropy spin
-      const seed = points.reduce((acc, p) => acc + p.x + p.y, 0) * Date.now();
-      const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
-      finalNumber = possibleNumbers[randomIndex];
-      clearPoints();
-    } else {
-      // "Spin Again" uses standard randomness for speed
-      const randomIndex = Math.floor(Math.random() * possibleNumbers.length);
-      finalNumber = possibleNumbers[randomIndex];
-    }
+    const seed = points.reduce((acc, p) => acc + p.x + p.y, 0) * Date.now();
+    const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
+    const finalNumber = possibleNumbers[randomIndex];
 
     setIsSpinning(true);
     setResult(finalNumber);
-    if (!hasSpunOnce) {
-      setHasSpunOnce(true);
-    }
+    clearPoints();
   };
 
   const entropyProgress = Math.min((points.length / ENTROPY_TARGET) * 100, 100);
-  const buttonDisabled = isSpinning || (!hasSpunOnce && entropyProgress < 100);
-  const buttonText = isSpinning ? 'Spinning...' : hasSpunOnce ? 'Spin Again' : 'Generate Number';
+  const buttonDisabled = isSpinning || entropyProgress < 100;
+  const buttonText = isSpinning ? 'Spinning...' : 'Generate Number';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 space-y-8">
@@ -105,7 +89,7 @@ const Index = () => {
           max={max} 
           excluded={excluded} 
           result={result}
-          onSpinComplete={() => setIsSpinning(false)}
+          onSpinComplete={onSpinComplete}
         />
 
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -133,7 +117,7 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="text-yellow-400">Generate Randomness</CardTitle>
               <p className="text-sm text-gray-400 pt-1">
-                {hasSpunOnce ? 'Click "Spin Again" or move your mouse to generate new entropy.' : 'Move your mouse inside the box below.'}
+                Move your mouse inside the box below to generate entropy.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
