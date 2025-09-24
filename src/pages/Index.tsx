@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMouseEntropy } from '@/hooks/useMouseEntropy';
 import { showError } from '@/utils/toast';
 import { MadeWithDyad } from '@/components/made-with-dyad';
@@ -88,15 +88,6 @@ const Index = () => {
         </div>
 
         <div className="space-y-6">
-          {result !== null && (
-            <Card className="bg-gray-800 border-yellow-400 text-white">
-              <CardHeader className="text-center">
-                <CardDescription>The generated number is</CardDescription>
-                <CardTitle className="text-5xl font-bold text-yellow-400">{result}</CardTitle>
-              </CardHeader>
-            </Card>
-          )}
-
           <Card className="bg-gray-800 border-gray-700 text-white">
             <CardHeader>
               <CardTitle className="text-yellow-400">Settings</CardTitle>
