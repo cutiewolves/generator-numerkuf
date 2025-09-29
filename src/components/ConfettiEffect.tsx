@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { Confetti } from '@/components/ui/confetti';
+import confetti from 'canvas-confetti';
 
 interface ConfettiEffectProps {
   isAnimating: boolean;
@@ -11,26 +11,42 @@ interface ConfettiEffectProps {
 const ConfettiEffect = ({ isAnimating, onComplete }: ConfettiEffectProps) => {
   useEffect(() => {
     if (isAnimating) {
-      // Set a timer to call the onComplete callback after the animation finishes
-      const timer = setTimeout(() => {
-        if (onComplete) {
-          onComplete();
-        }
-      }, 4000); // Let the animation run for 4 seconds
+      const end = Date.now() + 3 * 1000; // 3 seconds
+      const colors = ["#facc15", "#fb923c", "#f87171", "#ffffff"]; // Yellow, orange, red, white to match the theme
 
-      return () => clearTimeout(timer);
+      const frame = () => {
+        if (Date.now() > end) {
+          onComplete();
+          return;
+        }
+
+        // Left cannon
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          startVelocity: 60,
+          origin: { x: 0, y: 0.5 },
+          colors: colors,
+        });
+        // Right cannon
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          startVelocity: 60,
+          origin: { x: 1, y: 0.5 },
+          colors: colors,
+        });
+
+        requestAnimationFrame(frame);
+      };
+
+      frame();
     }
   }, [isAnimating, onComplete]);
 
-  if (!isAnimating) {
-    return null;
-  }
-
-  return (
-    <div className="fixed inset-0 w-full h-full z-[100] pointer-events-none">
-      <Confetti className="h-full w-full" />
-    </div>
-  );
+  return null; // This component doesn't render anything itself
 };
 
 export default ConfettiEffect;
