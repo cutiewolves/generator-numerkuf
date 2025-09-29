@@ -118,18 +118,16 @@ const Index = () => {
 
   const handleConfettiComplete = useCallback(() => {
     setShowConfetti(false);
-    // Add a small delay before closing fullscreen to make transition smoother
-    setTimeout(() => {
-      setIsFullScreen(false);
-      setIsSpinning(false);
-      setRouletteKey(prevKey => prevKey + 1); // Force re-mount of the component
-    }, 200);
+    // Reset the roulette component for the next spin after confetti is done
+    setRouletteKey(prevKey => prevKey + 1);
   }, []);
 
   const onSpinComplete = useCallback(() => {
-    // Wait a moment to let user see the number, then show confetti
+    // Wait a moment to let user see the number, then show confetti and start minimizing
     setTimeout(() => {
       setShowConfetti(true);
+      setIsFullScreen(false);
+      setIsSpinning(false);
     }, 1000);
   }, []);
 
