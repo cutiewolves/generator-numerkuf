@@ -16,7 +16,6 @@ import HistoryPanel from '@/components/HistoryPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { History } from 'lucide-react';
 import ConfettiEffect from '@/components/ConfettiEffect';
-import { Globe } from '@/components/ui/globe';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -248,7 +247,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start pt-8 p-4 lg:p-8 overflow-hidden relative">
       <ConfettiEffect isAnimating={showConfetti} onComplete={handleConfettiComplete} />
       <div className="w-full max-w-7xl mx-auto">
-        <div className={cn("absolute top-4 right-4 md:top-8 md:right-8 z-20 transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
+        <div className={cn("absolute top-4 right-4 md:top-8 md-right-8 z-20 transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="bg-gray-800 border-gray-700 hover:bg-gray-700">
@@ -269,10 +268,6 @@ const Index = () => {
             Kto do odpowiedzi?
           </h1>
           <p className="text-gray-400">Wylosuj ucznia do odpowiedzi.</p>
-        </div>
-
-        <div className={cn("relative flex h-[400px] w-full max-w-4xl mx-auto items-center justify-center overflow-hidden rounded-lg border border-gray-700 bg-gray-800/50 my-8 p-4 transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
-          <Globe config={GLOBE_CONFIG} />
         </div>
 
         <div className="flex justify-center">
