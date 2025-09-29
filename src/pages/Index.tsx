@@ -16,6 +16,7 @@ import HistoryPanel from '@/components/HistoryPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { History } from 'lucide-react';
 import ConfettiEffect from '@/components/ConfettiEffect';
+import { Globe } from '@/components/ui/globe';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -268,6 +269,10 @@ const Index = () => {
             Kto do odpowiedzi?
           </h1>
           <p className="text-gray-400">Wylosuj ucznia do odpowiedzi.</p>
+        </div>
+
+        <div className={cn("relative flex h-[400px] w-full max-w-4xl mx-auto items-center justify-center overflow-hidden rounded-lg border border-gray-700 bg-gray-800/50 my-8 p-4 transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
+          <Globe config={GLOBE_CONFIG} />
         </div>
 
         <div className="flex justify-center">
