@@ -6,6 +6,14 @@ interface CaseOpeningProps {
   min: number;
   max: number;
   result: number | null;
+  onSpinComplete: () from 'react';
+import { motion, useAnimationControls } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
+interface CaseOpeningProps {
+  min: number;
+  max: number;
+  result: number | null;
   onSpinComplete: () => void;
   shouldSpin: boolean;
   isFullScreen?: boolean;
@@ -36,7 +44,7 @@ const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScree
         controls.set({ x: 0 });
         await controls.start({
           x: finalX,
-          transition: { duration: 7, ease: [0.16, 1, 0.3, 1] },
+          transition: { duration: 10, ease: [0.16, 1, 0.3, 1] },
         });
         onSpinComplete();
       };
