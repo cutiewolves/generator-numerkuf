@@ -12,9 +12,10 @@ interface CaseOpeningProps {
   displayNumbers: number[];
   winningIndex: number;
   isTransitioning?: boolean;
+  jitterFactor: number;
 }
 
-const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScreen = false, displayNumbers, winningIndex, isTransitioning = false }: CaseOpeningProps) => {
+const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScreen = false, displayNumbers, winningIndex, isTransitioning = false, jitterFactor }: CaseOpeningProps) => {
   const controls = useAnimationControls();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -29,7 +30,9 @@ const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScree
 
     const targetOffset = winningIndex * itemTotalWidth;
     const centerOffset = containerWidth / 2 - ITEM_WIDTH_PX / 2;
-    const finalX = -(targetOffset - centerOffset);
+    
+    const jitter = jitterFactor * ITEM_WIDTH_PX;
+    const finalX = -(targetOffset - centerOffset) + jitter;
 
     if (shouldSpin) {
       const spin = async () => {
@@ -48,7 +51,7 @@ const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScree
         controls.set({ x: finalX });
       }
     }
-  }, [shouldSpin, displayNumbers, winningIndex, result, controls, onSpinComplete, ITEM_WIDTH_PX, ITEM_GAP_PX]);
+  }, [shouldSpin, displayNumbers, winningIndex, result, controls, onSpinComplete, ITEM_WIDTH_PX, ITEM_GAP_PX, jitterFactor]);
 
   const getItemColor = (num: number) => {
     const range = max - min;

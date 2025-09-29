@@ -44,6 +44,7 @@ const Index = () => {
   const [rouletteKey, setRouletteKey] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [sessionHistory, setSessionHistory] = useState<number[]>([]);
+  const [rouletteJitterFactor, setRouletteJitterFactor] = useState(0);
 
   const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
   const [winningIndex, setWinningIndex] = useState(0);
@@ -143,6 +144,9 @@ const Index = () => {
       showError("Nie udało się zapisać historii.");
     }
 
+    const randomJitterFactor = (Math.random() - 0.5) * 0.8; // Random factor between -0.4 and 0.4
+    setRouletteJitterFactor(randomJitterFactor);
+
     setIsFullScreen(true);
     clearPoints();
   };
@@ -190,6 +194,7 @@ const Index = () => {
                         displayNumbers={displayNumbers}
                         winningIndex={winningIndex}
                         isTransitioning={isTransitioning}
+                        jitterFactor={rouletteJitterFactor}
                       />
                     </motion.div>
                   </motion.div>
@@ -211,6 +216,7 @@ const Index = () => {
                       displayNumbers={displayNumbers}
                       winningIndex={winningIndex}
                       isTransitioning={isTransitioning}
+                      jitterFactor={rouletteJitterFactor}
                     />
                   </motion.div>
                 )}
