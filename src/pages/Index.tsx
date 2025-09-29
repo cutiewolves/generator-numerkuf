@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom';
 import HistoryPanel from '@/components/HistoryPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { History } from 'lucide-react';
+import ConfettiEffect from '@/components/ConfettiEffect';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -47,6 +48,7 @@ const Index = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [sessionHistory, setSessionHistory] = useState<number[]>([]);
   const [rouletteJitterFactor, setRouletteJitterFactor] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
   const [winningIndex, setWinningIndex] = useState(0);
@@ -114,12 +116,21 @@ const Index = () => {
   }, [generateDisplayNumbers]);
 
 
-  const onSpinComplete = useCallback(() => {
+  const handleConfettiComplete = useCallback(() => {
+    setShowConfetti(false);
+    // Add a small delay before closing fullscreen to make transition smoother
     setTimeout(() => {
       setIsFullScreen(false);
       setIsSpinning(false);
       setRouletteKey(prevKey => prevKey + 1); // Force re-mount of the component
-    }, 2000); // Wait 2 seconds before closing fullscreen
+    }, 200);
+  }, []);
+
+  const onSpinComplete = useCallback(() => {
+    // Wait a moment to let user see the number, then show confetti
+    setTimeout(() => {
+      setShowConfetti(true);
+    }, 1000);
   }, []);
 
   useEffect(() => {
@@ -204,6 +215,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start pt-8 p-4 lg:p-8 overflow-hidden relative">
+      {showConfetti && <ConfettiEffect onComplete={handleConfettiComplete} />}
       <div className="w-full max-w-7xl mx-auto">
         <div className={cn("absolute top-4 right-4 md:top-8 md:right-8 z-20 transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
           <Sheet>
