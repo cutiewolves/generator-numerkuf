@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 interface HistoryPanelProps {
   history: number[];
@@ -37,6 +38,11 @@ const HistoryPanel = ({ history }: HistoryPanelProps) => {
           </div>
         )}
       </CardContent>
+      <CardFooter>
+        <Link to="/stara-historia" className="text-sm text-yellow-400 hover:underline w-full text-center">
+          Zobacz archiwum
+        </Link>
+      </CardFooter>
     </Card>
   );
 };
