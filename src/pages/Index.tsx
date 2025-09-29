@@ -35,9 +35,9 @@ const generateRandomNumber = (min: number, max: number, excluded: number) => {
 };
 
 const Index = () => {
-  const [min, setMin] = useState(1);
-  const [max, setMax] = useState(36);
-  const [excluded, setExcluded] = useState(7);
+  const [min, setMin] = useState<number | ''>(1);
+  const [max, setMax] = useState<number | ''>(36);
+  const [excluded, setExcluded] = useState<number | ''>(7);
   const [result, setResult] = useState<number | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -75,6 +75,11 @@ const Index = () => {
 
   // Generate numbers for the roulette on initial load and when settings change
   const generateDisplayNumbers = useCallback(() => {
+    if (min === '' || max === '' || excluded === '') {
+      setDisplayNumbers([]);
+      return;
+    }
+
     const parsedMin = Number(min);
     const parsedMax = Number(max);
     const parsedExcluded = Number(excluded);
@@ -127,6 +132,11 @@ const Index = () => {
 
   const handleGenerate = () => {
     if (isSpinning || isFullScreen) return;
+
+    if (min === '' || max === '' || excluded === '') {
+      showError('Proszę wypełnić wszystkie pola ustawień.');
+      return;
+    }
 
     const parsedMin = parseInt(String(min), 10);
     const parsedMax = parseInt(String(max), 10);
@@ -187,7 +197,7 @@ const Index = () => {
 
   const entropyProgress = Math.min((points.length / ENTROPY_TARGET) * 100, 100);
   const isBusy = isSpinning || isFullScreen;
-  const buttonDisabled = isBusy || entropyProgress < 100;
+  const buttonDisabled = isBusy || entropyProgress < 100 || min === '' || max === '' || excluded === '';
   const buttonText = isBusy ? 'Losowanie...' : 'Losuj!';
 
   return (
@@ -219,8 +229,8 @@ const Index = () => {
                       className="w-full"
                     >
                       <CaseOpening 
-                        min={min} 
-                        max={max} 
+                        min={Number(min)} 
+                        max={Number(max)} 
                         result={result}
                         onSpinComplete={onSpinComplete}
                         shouldSpin={isSpinning}
@@ -241,8 +251,8 @@ const Index = () => {
                     onLayoutAnimationComplete={() => setIsTransitioning(false)}
                   >
                     <CaseOpening 
-                      min={min} 
-                      max={max} 
+                      min={Number(min)} 
+                      max={Number(max)} 
                       result={result}
                       onSpinComplete={onSpinComplete}
                       shouldSpin={isSpinning}
@@ -266,15 +276,15 @@ const Index = () => {
                   <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="min">Pierwszy numer w dzienniku</Label>
-                      <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
+                      <Input id="min" type="number" value={min} onChange={(e) => setMin(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="max">Ostatni numer w dzienniku</Label>
-                      <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
+                      <Input id="max" type="number" value={max} onChange={(e) => setMax(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                     </div>
                     <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="excluded">"Szczęśliwy numerek" (wyklucz)</Label>
-                      <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
+                      <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                     </div>
                   </CardContent>
                   <CardFooter>
