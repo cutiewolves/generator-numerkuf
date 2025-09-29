@@ -21,7 +21,7 @@ const HistoryPanel = ({ history }: HistoryPanelProps) => {
               <AnimatePresence initial={false}>
                 {history.map((num, index) => (
                   <motion.li
-                    key={`${num}-${Date.now()}-${index}`}
+                    key={`${num}-${history.length - index}`}
                     layout
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
