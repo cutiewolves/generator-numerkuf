@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useMouseEntropy } from '@/hooks/useMouseEntropy';
 import { showError } from '@/utils/toast';
 import { MadeWithDyad } from '@/components/made-with-dyad';
@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import CaseOpening from '@/components/CaseOpening';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -201,6 +202,14 @@ const Index = () => {
                 <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
             </CardContent>
+            <CardFooter>
+              <p className="text-sm text-gray-400">
+                Jak działa losowanie?{' '}
+                <Link to="/dokumentacja" className="text-yellow-400 hover:underline">
+                  Przeczytaj dokumentację techniczną.
+                </Link>
+              </p>
+            </CardFooter>
           </Card>
 
           <Card className="bg-gray-800 border-gray-700 text-white">
