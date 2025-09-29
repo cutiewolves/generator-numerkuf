@@ -2,7 +2,13 @@
 
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { useCallback, useMemo, useState, type ComponentProps } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentProps,
+} from "react";
 
 const PARTICLE_COUNT = 20;
 const STAR_COUNT = 10;
@@ -42,6 +48,10 @@ export function Confetti({ className, ...props }: ComponentProps<"div">) {
     setParticles(newParticles);
     setStars(newStars);
   }, []);
+
+  useEffect(() => {
+    shoot();
+  }, [shoot]);
 
   const colors = useMemo(
     () => [
@@ -97,7 +107,6 @@ export function Confetti({ className, ...props }: ComponentProps<"div">) {
           <motion.div
             key={i}
             className="absolute h-2 w-4 rounded-full"
-            onAnimationComplete={shoot}
             style={{
               top: `${particle.y}%`,
               left: `${particle.x}%`,
