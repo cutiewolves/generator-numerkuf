@@ -36,7 +36,7 @@ const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScree
         controls.set({ x: 0 });
         await controls.start({
           x: finalX,
-          transition: { duration: 7, ease: 'easeOut' },
+          transition: { duration: 7, ease: [0.16, 1, 0.3, 1] },
         });
         onSpinComplete();
       };
