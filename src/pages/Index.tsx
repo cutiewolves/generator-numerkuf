@@ -117,15 +117,15 @@ const Index = () => {
   const entropyProgress = Math.min((points.length / ENTROPY_TARGET) * 100, 100);
   const isBusy = isSpinning || isFullScreen;
   const buttonDisabled = isBusy || entropyProgress < 100;
-  const buttonText = isBusy ? 'Losowanie...' : 'Generuj liczbę';
+  const buttonText = isBusy ? 'Losowanie...' : 'Losuj!';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 space-y-8 overflow-hidden">
       <div className={cn("text-center transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
         <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-2 tracking-wider uppercase" style={{ textShadow: '0 0 10px rgba(250, 204, 21, 0.5)' }}>
-          Ruletka Entropii
+          Szczęśliwy Numerek
         </h1>
-        <p className="text-gray-400">Ruchy myszką zasilają prawdziwą losowość.</p>
+        <p className="text-gray-400">Wylosuj ucznia do odpowiedzi.</p>
       </div>
 
       <div className="w-full max-w-4xl h-48">
@@ -185,19 +185,19 @@ const Index = () => {
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-gray-800 border-gray-700 text-white">
             <CardHeader>
-              <CardTitle className="text-yellow-400">Ustawienia</CardTitle>
+              <CardTitle className="text-yellow-400">Ustawienia losowania</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="min">Liczba minimalna</Label>
+                <Label htmlFor="min">Pierwszy numer w dzienniku</Label>
                 <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="max">Liczba maksymalna</Label>
+                <Label htmlFor="max">Ostatni numer w dzienniku</Label>
                 <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="excluded">Szczęśliwy numer (Wyklucz)</Label>
+                <Label htmlFor="excluded">Wyklucz numer z losowania</Label>
                 <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
             </CardContent>
@@ -205,9 +205,9 @@ const Index = () => {
 
           <Card className="bg-gray-800 border-gray-700 text-white">
             <CardHeader>
-              <CardTitle className="text-yellow-400">Generuj losowość</CardTitle>
+              <CardTitle className="text-yellow-400">Przygotuj losowanie</CardTitle>
               <p className="text-sm text-gray-400 pt-1">
-                Poruszaj myszką w poniższym polu, aby wygenerować entropię.
+                Poruszaj myszką, aby zapewnić pełną losowość wyniku.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
