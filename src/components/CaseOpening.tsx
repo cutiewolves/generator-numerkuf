@@ -6,14 +6,6 @@ interface CaseOpeningProps {
   min: number;
   max: number;
   result: number | null;
-  onSpinComplete: () from 'react';
-import { motion, useAnimationControls } from 'framer-motion';
-import { cn } from '@/lib/utils';
-
-interface CaseOpeningProps {
-  min: number;
-  max: number;
-  result: number | null;
   onSpinComplete: () => void;
   shouldSpin: boolean;
   isFullScreen?: boolean;
