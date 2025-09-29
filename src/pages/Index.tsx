@@ -12,6 +12,7 @@ import CaseOpening from '@/components/CaseOpening';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import HistoryPanel from '@/components/HistoryPanel';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -42,12 +43,34 @@ const Index = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [rouletteKey, setRouletteKey] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [history, setHistory] = useState<number[]>([]);
 
   const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
   const [winningIndex, setWinningIndex] = useState(0);
 
   const entropyRef = useRef<HTMLDivElement>(null);
   const { points, clearPoints } = useMouseEntropy(entropyRef, !isSpinning && !isFullScreen);
+
+  useEffect(() => {
+    try {
+      const storedHistory = localStorage.getItem('rouletteHistory');
+      if (storedHistory) {
+        setHistory(JSON.parse(storedHistory));
+      }
+    } catch (error) {
+      console.error("Failed to load history from localStorage", error);
+      showError("Nie udało się wczytać historii.");
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('rouletteHistory', JSON.stringify(history));
+    } catch (error) {
+      console.error("Failed to save history to localStorage", error);
+      showError("Nie udało się zapisać historii.");
+    }
+  }, [history]);
 
   const onSpinComplete = useCallback(() => {
     setTimeout(() => {
@@ -99,7 +122,6 @@ const Index = () => {
     const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
     const finalNumber = possibleNumbers[randomIndex];
 
-    // Generate the display numbers and winning index here
     const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
     const newNumbers = Array.from({ length: TOTAL_ITEMS }, (_, index) => {
       if (index === winnerIndex) {
@@ -111,7 +133,8 @@ const Index = () => {
     setDisplayNumbers(newNumbers);
     setWinningIndex(winnerIndex);
     setResult(finalNumber);
-    setIsFullScreen(true); // Start fullscreen animation
+    setHistory(prevHistory => [finalNumber, ...prevHistory].slice(0, 50));
+    setIsFullScreen(true);
     clearPoints();
   };
 
@@ -121,127 +144,136 @@ const Index = () => {
   const buttonText = isBusy ? 'Losowanie...' : 'Losuj!';
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 space-y-8 overflow-hidden">
-      <div className={cn("text-center transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
-        <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-2 tracking-wider uppercase" style={{ textShadow: '0 0 10px rgba(250, 204, 21, 0.5)' }}>
-          Kto do odpowiedzi?
-        </h1>
-        <p className="text-gray-400">Wylosuj ucznia do odpowiedzi.</p>
-      </div>
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start pt-8 p-4 lg:p-8 overflow-hidden">
+      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        <div className="lg:col-span-3 w-full flex flex-col items-center space-y-8">
+          <div className={cn("text-center transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
+            <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-2 tracking-wider uppercase" style={{ textShadow: '0 0 10px rgba(250, 204, 21, 0.5)' }}>
+              Kto do odpowiedzi?
+            </h1>
+            <p className="text-gray-400">Wylosuj ucznia do odpowiedzi.</p>
+          </div>
 
-      <div className="w-full max-w-4xl h-48">
-        <AnimatePresence initial={false}>
-          {isFullScreen ? (
-            <motion.div
-              key="fullscreen"
-              className="fixed inset-0 z-50 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onAnimationStart={() => setIsTransitioning(true)}
-              onAnimationComplete={() => setIsTransitioning(false)}
-            >
-              <motion.div
-                layoutId="roulette-container"
-                className="w-full"
-              >
-                <CaseOpening 
-                  min={min} 
-                  max={max} 
-                  result={result}
-                  onSpinComplete={onSpinComplete}
-                  shouldSpin={isSpinning}
-                  isFullScreen={true}
-                  displayNumbers={displayNumbers}
-                  winningIndex={winningIndex}
-                  isTransitioning={isTransitioning}
-                />
-              </motion.div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key={rouletteKey}
-              layoutId="roulette-container"
-              className="w-full h-full"
-              onLayoutAnimationStart={() => setIsTransitioning(true)}
-              onLayoutAnimationComplete={() => setIsTransitioning(false)}
-            >
-              <CaseOpening 
-                min={min} 
-                max={max} 
-                result={result}
-                onSpinComplete={onSpinComplete}
-                shouldSpin={isSpinning}
-                isFullScreen={false}
-                displayNumbers={displayNumbers}
-                winningIndex={winningIndex}
-                isTransitioning={isTransitioning}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          <div className="w-full max-w-4xl h-48">
+            <AnimatePresence initial={false}>
+              {isFullScreen ? (
+                <motion.div
+                  key="fullscreen"
+                  className="fixed inset-0 z-50 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onAnimationStart={() => setIsTransitioning(true)}
+                  onAnimationComplete={() => setIsTransitioning(false)}
+                >
+                  <motion.div
+                    layoutId="roulette-container"
+                    className="w-full"
+                  >
+                    <CaseOpening 
+                      min={min} 
+                      max={max} 
+                      result={result}
+                      onSpinComplete={onSpinComplete}
+                      shouldSpin={isSpinning}
+                      isFullScreen={true}
+                      displayNumbers={displayNumbers}
+                      winningIndex={winningIndex}
+                      isTransitioning={isTransitioning}
+                    />
+                  </motion.div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={rouletteKey}
+                  layoutId="roulette-container"
+                  className="w-full h-full"
+                  onLayoutAnimationStart={() => setIsTransitioning(true)}
+                  onLayoutAnimationComplete={() => setIsTransitioning(false)}
+                >
+                  <CaseOpening 
+                    min={min} 
+                    max={max} 
+                    result={result}
+                    onSpinComplete={onSpinComplete}
+                    shouldSpin={isSpinning}
+                    isFullScreen={false}
+                    displayNumbers={displayNumbers}
+                    winningIndex={winningIndex}
+                    isTransitioning={isTransitioning}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-      <div className={cn("w-full max-w-4xl mx-auto flex flex-col gap-8 items-center transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-gray-800 border-gray-700 text-white">
-            <CardHeader>
-              <CardTitle className="text-yellow-400">Ustawienia losowania</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="min">Pierwszy numer w dzienniku</Label>
-                <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="max">Ostatni numer w dzienniku</Label>
-                <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="excluded">"Szczęśliwy numerek" (wyklucz)</Label>
-                <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <p className="text-sm text-gray-400">
-                Jak działa losowanie?{' '}
-                <Link to="/dokumentacja" className="text-yellow-400 hover:underline">
-                  Przeczytaj dokumentację techniczną.
-                </Link>
-              </p>
-            </CardFooter>
-          </Card>
-
-          <Card className="bg-gray-800 border-gray-700 text-white">
-            <CardHeader>
-              <CardTitle className="text-yellow-400">Przygotuj losowanie</CardTitle>
-              <p className="text-sm text-gray-400 pt-1">
-                Poruszaj myszką, aby zapewnić pełną losowość wyniku.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div 
-                ref={entropyRef} 
-                className={cn(
-                  "w-full h-48 bg-gray-800 cursor-crosshair rounded-lg overflow-hidden relative",
-                  isBusy && "cursor-not-allowed"
-                )}
-              >
-                <EntropyCanvas width={500} height={192} points={points} />
-                {isBusy && (
-                  <div className="absolute inset-0 bg-gray-900/70 flex items-center justify-center transition-opacity duration-300">
-                    <p className="text-white font-bold text-lg">Losowanie w toku...</p>
+          <div className={cn("w-full max-w-4xl mx-auto flex flex-col gap-8 items-center transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="bg-gray-800 border-gray-700 text-white">
+                <CardHeader>
+                  <CardTitle className="text-yellow-400">Ustawienia losowania</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="min">Pierwszy numer w dzienniku</Label>
+                    <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                   </div>
-                )}
-              </div>
-              <Progress value={entropyProgress} className="w-full [&>div]:bg-yellow-400" />
-              <Button onClick={handleGenerate} className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold" disabled={buttonDisabled}>
-                {buttonText}
-              </Button>
-            </CardContent>
-          </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="max">Ostatni numer w dzienniku</Label>
+                    <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="excluded">"Szczęśliwy numerek" (wyklucz)</Label>
+                    <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <p className="text-sm text-gray-400">
+                    Jak działa losowanie?{' '}
+                    <Link to="/dokumentacja" className="text-yellow-400 hover:underline">
+                      Przeczytaj dokumentację techniczną.
+                    </Link>
+                  </p>
+                </CardFooter>
+              </Card>
+
+              <Card className="bg-gray-800 border-gray-700 text-white">
+                <CardHeader>
+                  <CardTitle className="text-yellow-400">Przygotuj losowanie</CardTitle>
+                  <p className="text-sm text-gray-400 pt-1">
+                    Poruszaj myszką, aby zapewnić pełną losowość wyniku.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div 
+                    ref={entropyRef} 
+                    className={cn(
+                      "w-full h-48 bg-gray-800 cursor-crosshair rounded-lg overflow-hidden relative",
+                      isBusy && "cursor-not-allowed"
+                    )}
+                  >
+                    <EntropyCanvas width={500} height={192} points={points} />
+                    {isBusy && (
+                      <div className="absolute inset-0 bg-gray-900/70 flex items-center justify-center transition-opacity duration-300">
+                        <p className="text-white font-bold text-lg">Losowanie w toku...</p>
+                      </div>
+                    )}
+                  </div>
+                  <Progress value={entropyProgress} className="w-full [&>div]:bg-yellow-400" />
+                  <Button onClick={handleGenerate} className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold" disabled={buttonDisabled}>
+                    {buttonText}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+        
+        <div className={cn("hidden lg:block w-full transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
+          <HistoryPanel history={history} />
         </div>
       </div>
+
       <div className={cn("absolute bottom-0 left-0 w-full transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
         <MadeWithDyad />
       </div>
