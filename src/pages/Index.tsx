@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import HistoryPanel from '@/components/HistoryPanel';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { History } from 'lucide-react';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -201,8 +203,24 @@ const Index = () => {
   const buttonText = isBusy ? 'Losowanie...' : 'Losuj!';
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start pt-8 p-4 lg:p-8 overflow-hidden">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start pt-8 p-4 lg:p-8 overflow-hidden relative">
       <div className="w-full max-w-7xl mx-auto">
+        <div className={cn("absolute top-4 right-4 md:top-8 md:right-8 z-20 transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="bg-gray-800 border-gray-700 hover:bg-gray-700">
+                <History className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="bg-gray-800 border-gray-700 text-white flex flex-col">
+              <SheetHeader>
+                <SheetTitle className="text-yellow-400">Historia losowań</SheetTitle>
+              </SheetHeader>
+              <HistoryPanel history={sessionHistory} min={Number(min)} max={Number(max)} />
+            </SheetContent>
+          </Sheet>
+        </div>
+
         <div className={cn("text-center transition-opacity duration-300 mb-8", isFullScreen ? "opacity-0" : "opacity-100")}>
           <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-2 tracking-wider uppercase" style={{ textShadow: '0 0 10px rgba(250, 204, 21, 0.5)' }}>
             Kto do odpowiedzi?
@@ -210,9 +228,9 @@ const Index = () => {
           <p className="text-gray-400">Wylosuj ucznia do odpowiedzi.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2 w-full flex flex-col space-y-8">
-            <div className="w-full max-w-4xl h-48 mx-auto">
+        <div className="flex justify-center">
+          <div className="w-full max-w-4xl flex flex-col space-y-8">
+            <div className="w-full h-48">
               <AnimatePresence initial={false}>
                 {isFullScreen ? (
                   <motion.div
@@ -267,7 +285,7 @@ const Index = () => {
               </AnimatePresence>
             </div>
 
-            <div className={cn("w-full max-w-4xl mx-auto flex flex-col gap-8 transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
+            <div className={cn("w-full flex flex-col gap-8 transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
               <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-gray-800 border-gray-700 text-white">
                   <CardHeader>
@@ -327,10 +345,6 @@ const Index = () => {
                 </Card>
               </div>
             </div>
-          </div>
-          
-          <div className={cn("lg:col-span-1 hidden lg:block w-full transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
-            <HistoryPanel history={sessionHistory} min={Number(min)} max={Number(max)} />
           </div>
         </div>
       </div>
