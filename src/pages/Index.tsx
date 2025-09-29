@@ -73,6 +73,40 @@ const Index = () => {
     setSessionHistory([]);
   }, []);
 
+  // Generate numbers for the roulette on initial load and when settings change
+  const generateDisplayNumbers = useCallback(() => {
+    const parsedMin = Number(min);
+    const parsedMax = Number(max);
+    const parsedExcluded = Number(excluded);
+
+    if (isNaN(parsedMin) || isNaN(parsedMax) || parsedMin >= parsedMax) {
+      setDisplayNumbers([]);
+      return;
+    }
+
+    const possibleNumbers = [];
+    for (let i = parsedMin; i <= parsedMax; i++) {
+      if (i !== parsedExcluded) {
+        possibleNumbers.push(i);
+      }
+    }
+
+    if (possibleNumbers.length === 0) {
+      setDisplayNumbers([]);
+      return;
+    }
+
+    const newNumbers = Array.from({ length: TOTAL_ITEMS }, () => 
+      generateRandomNumber(parsedMin, parsedMax, parsedExcluded)
+    );
+    setDisplayNumbers(newNumbers);
+  }, [min, max, excluded]);
+
+  useEffect(() => {
+    generateDisplayNumbers();
+  }, [generateDisplayNumbers]);
+
+
   const onSpinComplete = useCallback(() => {
     setTimeout(() => {
       setIsFullScreen(false);
