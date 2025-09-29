@@ -23,7 +23,10 @@ const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScree
   const ITEM_GAP_PX = isFullScreen ? 16 : 8;
 
   useEffect(() => {
-    if (displayNumbers.length === 0 || !containerRef.current) return;
+    if (displayNumbers.length === 0 || !containerRef.current) {
+      controls.set({ x: 0 });
+      return;
+    }
 
     const itemTotalWidth = ITEM_WIDTH_PX + ITEM_GAP_PX;
     const containerWidth = containerRef.current.offsetWidth;
@@ -49,6 +52,9 @@ const CaseOpening = ({ min, max, result, onSpinComplete, shouldSpin, isFullScree
       // If not spinning, but we have a result, set the final position immediately.
       if (result !== null) {
         controls.set({ x: finalX });
+      } else {
+        // When there's no result (i.e., between spins), reset to start
+        controls.set({ x: 0 });
       }
     }
   }, [shouldSpin, displayNumbers, winningIndex, result, controls, onSpinComplete, ITEM_WIDTH_PX, ITEM_GAP_PX, jitterFactor]);

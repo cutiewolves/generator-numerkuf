@@ -44,7 +44,6 @@ const Index = () => {
   const [result, setResult] = useState<number | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [rouletteKey, setRouletteKey] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [sessionHistory, setSessionHistory] = useState<number[]>([]);
   const [rouletteJitterFactor, setRouletteJitterFactor] = useState(0);
@@ -118,8 +117,7 @@ const Index = () => {
 
   const handleConfettiComplete = useCallback(() => {
     setShowConfetti(false);
-    // Reset the roulette component for the next spin after confetti is done
-    setRouletteKey(prevKey => prevKey + 1);
+    setResult(null); // Reset the result to prepare for the next spin
   }, []);
 
   const onSpinComplete = useCallback(() => {
@@ -272,7 +270,6 @@ const Index = () => {
                   </motion.div>
                 ) : (
                   <motion.div
-                    key={rouletteKey}
                     layoutId="roulette-container"
                     className="w-full h-full"
                     onLayoutAnimationStart={() => setIsTransitioning(true)}
