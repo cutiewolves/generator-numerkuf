@@ -74,11 +74,11 @@ const Index = () => {
     const parsedExcluded = parseInt(String(excluded), 10);
 
     if (isNaN(parsedMin) || isNaN(parsedMax)) {
-      showError('Please enter valid min and max numbers.');
+      showError('Proszę podać prawidłowe liczby minimalne i maksymalne.');
       return;
     }
     if (parsedMin >= parsedMax) {
-      showError('Min number must be less than max number.');
+      showError('Liczba minimalna musi być mniejsza od maksymalnej.');
       return;
     }
 
@@ -90,7 +90,7 @@ const Index = () => {
     }
 
     if (possibleNumbers.length === 0) {
-      showError('No possible numbers to generate in the given range.');
+      showError('Brak możliwych liczb do wygenerowania w podanym zakresie.');
       return;
     }
 
@@ -117,15 +117,15 @@ const Index = () => {
   const entropyProgress = Math.min((points.length / ENTROPY_TARGET) * 100, 100);
   const isBusy = isSpinning || isFullScreen;
   const buttonDisabled = isBusy || entropyProgress < 100;
-  const buttonText = isBusy ? 'Spinning...' : 'Generate Number';
+  const buttonText = isBusy ? 'Losowanie...' : 'Generuj liczbę';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 space-y-8 overflow-hidden">
       <div className={cn("text-center transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
         <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-2 tracking-wider uppercase" style={{ textShadow: '0 0 10px rgba(250, 204, 21, 0.5)' }}>
-          Entropy Roulette
+          Ruletka Entropii
         </h1>
-        <p className="text-gray-400">Your mouse movements fuel true randomness.</p>
+        <p className="text-gray-400">Ruchy myszką zasilają prawdziwą losowość.</p>
       </div>
 
       <div className="w-full max-w-4xl h-48">
@@ -185,19 +185,19 @@ const Index = () => {
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-gray-800 border-gray-700 text-white">
             <CardHeader>
-              <CardTitle className="text-yellow-400">Settings</CardTitle>
+              <CardTitle className="text-yellow-400">Ustawienia</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="min">Min Number</Label>
+                <Label htmlFor="min">Liczba minimalna</Label>
                 <Input id="min" type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="max">Max Number</Label>
+                <Label htmlFor="max">Liczba maksymalna</Label>
                 <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="excluded">Lucky Number (Exclude)</Label>
+                <Label htmlFor="excluded">Szczęśliwy numer (Wyklucz)</Label>
                 <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
             </CardContent>
@@ -205,9 +205,9 @@ const Index = () => {
 
           <Card className="bg-gray-800 border-gray-700 text-white">
             <CardHeader>
-              <CardTitle className="text-yellow-400">Generate Randomness</CardTitle>
+              <CardTitle className="text-yellow-400">Generuj losowość</CardTitle>
               <p className="text-sm text-gray-400 pt-1">
-                Move your mouse inside the box below to generate entropy.
+                Poruszaj myszką w poniższym polu, aby wygenerować entropię.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -221,7 +221,7 @@ const Index = () => {
                 <EntropyCanvas width={500} height={192} points={points} />
                 {isBusy && (
                   <div className="absolute inset-0 bg-gray-900/70 flex items-center justify-center transition-opacity duration-300">
-                    <p className="text-white font-bold text-lg">Spin in progress...</p>
+                    <p className="text-white font-bold text-lg">Losowanie w toku...</p>
                   </div>
                 )}
               </div>
