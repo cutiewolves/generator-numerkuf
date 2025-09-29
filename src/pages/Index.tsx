@@ -123,7 +123,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 space-y-8 overflow-hidden">
       <div className={cn("text-center transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
         <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-2 tracking-wider uppercase" style={{ textShadow: '0 0 10px rgba(250, 204, 21, 0.5)' }}>
-          Szczęśliwy Numerek
+          Kto do odpowiedzi?
         </h1>
         <p className="text-gray-400">Wylosuj ucznia do odpowiedzi.</p>
       </div>
@@ -197,7 +197,7 @@ const Index = () => {
                 <Input id="max" type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="excluded">Wyklucz numer z losowania</Label>
+                <Label htmlFor="excluded">"Szczęśliwy numerek" (wyklucz)</Label>
                 <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(Number(e.target.value))} className="bg-gray-700 border-gray-600" disabled={isBusy} />
               </div>
             </CardContent>
