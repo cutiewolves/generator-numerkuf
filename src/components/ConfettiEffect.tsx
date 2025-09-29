@@ -35,7 +35,7 @@ const ConfettiEffect = ({ onComplete }: ConfettiEffectProps) => {
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none">
       <video ref={videoRef} muted playsInline className="w-full h-full object-cover">
-        <source src="/confetti.mp4" type="video/mp4" />
+        <source src="/confetti.webm" type="video/webm" />
       </video>
     </div>
   );
