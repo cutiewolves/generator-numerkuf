@@ -183,8 +183,7 @@ const Index = () => {
     setSessionHistory(newHistory);
     try {
       localStorage.setItem('rouletteHistory', JSON.stringify(newHistory));
-    } catch (error) {
-      console.error("Failed to save history to localStorage", error);
+    } catch (error)      console.error("Failed to save history to localStorage", error);
       showError("Nie udało się zapisać historii.");
     }
 
@@ -210,9 +209,9 @@ const Index = () => {
           <p className="text-gray-400">Wylosuj ucznia do odpowiedzi.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-          <div className="lg:col-span-3 w-full flex flex-col items-center space-y-8">
-            <div className="w-full max-w-4xl h-48">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2 w-full flex flex-col space-y-8">
+            <div className="w-full max-w-4xl h-48 mx-auto">
               <AnimatePresence initial={false}>
                 {isFullScreen ? (
                   <motion.div
@@ -267,7 +266,7 @@ const Index = () => {
               </AnimatePresence>
             </div>
 
-            <div className={cn("w-full max-w-4xl mx-auto flex flex-col gap-8 items-center transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
+            <div className={cn("w-full max-w-4xl mx-auto flex flex-col gap-8 transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
               <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-gray-800 border-gray-700 text-white">
                   <CardHeader>
@@ -329,8 +328,8 @@ const Index = () => {
             </div>
           </div>
           
-          <div className={cn("hidden lg:block w-full transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
-            <HistoryPanel history={sessionHistory} />
+          <div className={cn("lg:col-span-1 hidden lg:block w-full transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
+            <HistoryPanel history={sessionHistory} min={Number(min)} max={Number(max)} />
           </div>
         </div>
       </div>
