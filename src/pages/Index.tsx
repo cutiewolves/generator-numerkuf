@@ -245,7 +245,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start pt-8 p-4 lg:p-8 overflow-hidden relative">
-      {showConfetti && <ConfettiEffect onComplete={handleConfettiComplete} />}
+      <ConfettiEffect isAnimating={showConfetti} onComplete={handleConfettiComplete} />
       <div className="w-full max-w-7xl mx-auto">
         <div className={cn("absolute top-4 right-4 md:top-8 md:right-8 z-20 transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
           <Sheet>

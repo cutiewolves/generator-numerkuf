@@ -1,43 +1,59 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
+import React from 'react';
+import Confetti from '@magicui/react-confetti';
 
 interface ConfettiEffectProps {
+  isAnimating: boolean;
   onComplete: () => void;
 }
 
-const ConfettiEffect = ({ onComplete }: ConfettiEffectProps) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+const ConfettiEffect = ({ isAnimating, onComplete }: ConfettiEffectProps) => {
+  if (!isAnimating) {
+    return null;
+  }
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.play().catch(error => {
-        console.error("Video play failed:", error);
-        // If autoplay fails, just call onComplete immediately.
-        onComplete();
-      });
-
-      const handleVideoEnd = () => {
-        onComplete();
-      };
-      video.addEventListener('ended', handleVideoEnd);
-      
-      return () => {
-        video.removeEventListener('ended', handleVideoEnd);
-      };
-    } else {
-      // if video element is not there for some reason
+  // We only want to call the onComplete callback once, so we'll attach it to just one of the cannons.
+  const handleAnimationComplete = () => {
+    if (onComplete) {
       onComplete();
     }
-  }, [onComplete]);
+  };
 
   return (
-    <div className="fixed inset-0 z-[100] pointer-events-none">
-      <video ref={videoRef} muted playsInline className="w-full h-full object-cover">
-        <source src="/confetti.webm" type="video/webm" />
-      </video>
-    </div>
+    <>
+      {/* Left Cannon */}
+      <Confetti
+        isAnimating={isAnimating}
+        className="fixed inset-0 w-full h-full z-[100] pointer-events-none"
+        particleCount={100}
+        angle={45}
+        spread={55}
+        startVelocity={45}
+        decay={0.9}
+        gravity={1}
+        drift={0}
+        ticks={200}
+        origin={{ x: 0, y: 0.7 }}
+        colors={['#FACC15', '#FBBF24', '#F59E0B', '#FFFFFF']}
+        onAnimationComplete={handleAnimationComplete}
+      />
+      {/* Right Cannon */}
+      <Confetti
+        isAnimating={isAnimating}
+        className="fixed inset-0 w-full h-full z-[100] pointer-events-none"
+        particleCount={100}
+        angle={135}
+        spread={55}
+        startVelocity={45}
+        decay={0.9}
+        gravity={1}
+        drift={0}
+        ticks={200}
+        origin={{ x: 1, y: 0.7 }}
+        colors={['#FACC15', '#FBBF24', '#F59E0B', '#FFFFFF']}
+      />
+    </>
   );
 };
 
