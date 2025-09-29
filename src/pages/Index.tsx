@@ -117,7 +117,6 @@ const Index = () => {
 
   const handleConfettiComplete = useCallback(() => {
     setShowConfetti(false);
-    setResult(null); // Reset the result to prepare for the next spin
   }, []);
 
   const onSpinComplete = useCallback(() => {
