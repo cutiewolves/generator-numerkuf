@@ -27,8 +27,8 @@ const ConfettiEffect = ({ isAnimating, onComplete }: ConfettiEffectProps) => {
   }
 
   return (
-    <div className="fixed inset-0 w-full h-full z-[100] pointer-events-none flex items-center justify-center">
-      <Confetti className="h-96 w-96" />
+    <div className="fixed inset-0 w-full h-full z-[100] pointer-events-none">
+      <Confetti className="h-full w-full" />
     </div>
   );
 };
