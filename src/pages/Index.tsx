@@ -37,6 +37,31 @@ const generateRandomNumber = (min: number, max: number, excluded: number) => {
   return num;
 };
 
+const generateNonRepeatingRandomArray = (length: number, min: number, max: number, excluded: number) => {
+  const possibleNumbers = [];
+  for (let i = min; i <= max; i++) {
+    if (i !== excluded) {
+      possibleNumbers.push(i);
+    }
+  }
+
+  if (possibleNumbers.length === 0) return [];
+  if (possibleNumbers.length === 1) return Array(length).fill(possibleNumbers[0]);
+
+  const result: number[] = [];
+  let lastNumber: number | null = null;
+
+  for (let i = 0; i < length; i++) {
+    let num;
+    do {
+      num = generateRandomNumber(min, max, excluded);
+    } while (num === lastNumber);
+    result.push(num);
+    lastNumber = num;
+  }
+  return result;
+};
+
 const Index = () => {
   const [min, setMin] = useState<number | ''>(1);
   const [max, setMax] = useState<number | ''>(36);
@@ -92,21 +117,7 @@ const Index = () => {
       return;
     }
 
-    const possibleNumbers = [];
-    for (let i = parsedMin; i <= parsedMax; i++) {
-      if (i !== parsedExcluded) {
-        possibleNumbers.push(i);
-      }
-    }
-
-    if (possibleNumbers.length === 0) {
-      setDisplayNumbers([]);
-      return;
-    }
-
-    const newNumbers = Array.from({ length: TOTAL_ITEMS }, () => 
-      generateRandomNumber(parsedMin, parsedMax, parsedExcluded)
-    );
+    const newNumbers = generateNonRepeatingRandomArray(TOTAL_ITEMS, parsedMin, parsedMax, parsedExcluded);
     setDisplayNumbers(newNumbers);
   }, [min, max, excluded]);
 
@@ -176,12 +187,36 @@ const Index = () => {
     const finalNumber = possibleNumbers[randomIndex];
 
     const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
-    const newNumbers = Array.from({ length: TOTAL_ITEMS }, (_, index) => {
-      if (index === winnerIndex) {
-        return finalNumber;
+    
+    const newNumbers = new Array(TOTAL_ITEMS).fill(0);
+
+    if (possibleNumbers.length === 1) {
+      newNumbers.fill(possibleNumbers[0]);
+    } else {
+      newNumbers[winnerIndex] = finalNumber;
+
+      // Fill from winner to end
+      let last = finalNumber;
+      for (let i = winnerIndex + 1; i < TOTAL_ITEMS; i++) {
+        let num;
+        do {
+          num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
+        } while (num === last);
+        newNumbers[i] = num;
+        last = num;
       }
-      return generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
-    });
+
+      // Fill from winner to start
+      last = finalNumber;
+      for (let i = winnerIndex - 1; i >= 0; i--) {
+        let num;
+        do {
+          num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
+        } while (num === last);
+        newNumbers[i] = num;
+        last = num;
+      }
+    }
 
     setDisplayNumbers(newNumbers);
     setWinningIndex(winnerIndex);
