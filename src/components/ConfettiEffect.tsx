@@ -1,59 +1,69 @@
 "use client";
 
-import React from 'react';
-import Confetti from '@magicui/react-confetti';
+import React, { useState, useEffect } from 'react';
+import Confetti from 'react-confetti';
 
 interface ConfettiEffectProps {
   isAnimating: boolean;
   onComplete: () => void;
 }
 
+// A simple hook to get the window size
+const useWindowSize = () => {
+  const [windowSize, setWindowSize] = useState({
+    width: 0,
+    height: 0,
+  });
+
+  useEffect(() => {
+    function handleResize() {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+    
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return windowSize;
+}
+
 const ConfettiEffect = ({ isAnimating, onComplete }: ConfettiEffectProps) => {
-  if (!isAnimating) {
+  const { width, height } = useWindowSize();
+  const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    if (isAnimating) {
+      setIsRunning(true);
+      // Set a timer to automatically stop the confetti and call the onComplete callback
+      const timer = setTimeout(() => {
+        setIsRunning(false);
+        if (onComplete) {
+          onComplete();
+        }
+      }, 6000); // Let the confetti run for 6 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAnimating, onComplete]);
+
+  if (!isRunning) {
     return null;
   }
 
-  // We only want to call the onComplete callback once, so we'll attach it to just one of the cannons.
-  const handleAnimationComplete = () => {
-    if (onComplete) {
-      onComplete();
-    }
-  };
-
   return (
-    <>
-      {/* Left Cannon */}
-      <Confetti
-        isAnimating={isAnimating}
-        className="fixed inset-0 w-full h-full z-[100] pointer-events-none"
-        particleCount={100}
-        angle={45}
-        spread={55}
-        startVelocity={45}
-        decay={0.9}
-        gravity={1}
-        drift={0}
-        ticks={200}
-        origin={{ x: 0, y: 0.7 }}
-        colors={['#FACC15', '#FBBF24', '#F59E0B', '#FFFFFF']}
-        onAnimationComplete={handleAnimationComplete}
-      />
-      {/* Right Cannon */}
-      <Confetti
-        isAnimating={isAnimating}
-        className="fixed inset-0 w-full h-full z-[100] pointer-events-none"
-        particleCount={100}
-        angle={135}
-        spread={55}
-        startVelocity={45}
-        decay={0.9}
-        gravity={1}
-        drift={0}
-        ticks={200}
-        origin={{ x: 1, y: 0.7 }}
-        colors={['#FACC15', '#FBBF24', '#F59E0B', '#FFFFFF']}
-      />
-    </>
+    <Confetti
+      width={width}
+      height={height}
+      numberOfPieces={250}
+      recycle={false}
+      gravity={0.15}
+      className="fixed inset-0 w-full h-full z-[100] pointer-events-none"
+    />
   );
 };
 
