@@ -183,7 +183,8 @@ const Index = () => {
     setSessionHistory(newHistory);
     try {
       localStorage.setItem('rouletteHistory', JSON.stringify(newHistory));
-    } catch (error)      console.error("Failed to save history to localStorage", error);
+    } catch (error) {
+      console.error("Failed to save history to localStorage", error);
       showError("Nie udało się zapisać historii.");
     }
 
