@@ -42,20 +42,62 @@ const Documentation = () => {
           <p>Proces losowania przebiega w kilku kluczowych etapach:</p>
           <ol>
             <li>
-              <strong>Zbieranie Danych Entropijnych:</strong> Użytkownik jest proszony o poruszanie kursorem w dedykowanym polu. Aplikacja zbiera co najmniej 100 unikalnych punktów koordynatów (X, Y), aby zapewnić wystarczającą ilość danych wejściowych.
+              <strong>Zbieranie Danych Entropijnych:</strong> Użytkownik jest proszony o poruszanie kursorem w dedykowanym polu. Aplikacja zbiera co najmniej 100 unikalnych punktów koordynatów (X, Y), aby zapewnić wystarczającą ilość danych wejściowych. Proces ten jest obsługiwany przez dedykowany hook Reacta - <code>useMouseEntropy</code>.
+              <pre><code>
+{`export function useMouseEntropy(ref: RefObject<HTMLElement>, enabled: boolean) {
+  const [points, setPoints] = useState<MousePoint[]>([]);
+
+  const handleMouseMove = useCallback((event: MouseEvent) => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      setPoints((prevPoints) => [...prevPoints, { x, y }].slice(-200));
+    }
+  }, [ref]);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (element && enabled) {
+      const listener = handleMouseMove as EventListener;
+      element.addEventListener('mousemove', listener);
+      return () => {
+        element.removeEventListener('mousemove', listener);
+      };
+    }
+  }, [ref, handleMouseMove, enabled]);
+
+  // ...
+}`}
+              </code></pre>
             </li>
             <li>
               <strong>Tworzenie Ziarna (Seed):</strong> Zebrane dane są przetwarzane w celu stworzenia pojedynczej, unikalnej i bardzo dużej liczby, która posłuży jako ziarno dla generatora. Proces ten polega na zsumowaniu wszystkich zebranych współrzędnych (zarówno X, jak i Y), a następnie pomnożeniu wyniku przez precyzyjny znacznik czasu (timestamp) z dokładnością do milisekund, pobrany w momencie inicjacji losowania.
               <br/>
               <code>ziarno = (suma(x) + suma(y)) * Date.now()</code>
               <br/>
+              Implementacja w kodzie wygląda następująco:
+              <pre><code>
+{`const seed = points.reduce((acc, p) => acc + p.x + p.y, 0) * Date.now();`}
+              </code></pre>
               Dzięki temu nawet identyczne ruchy myszy wykonane w różnych momentach czasu wygenerują zupełnie inne ziarno.
             </li>
             <li>
-              <strong>Inicjalizacja Generatora PRNG:</strong> Utworzone ziarno jest następnie używane do zainicjowania naszego własnego, deterministycznego generatora liczb pseudolosowych (funkcja <code>seededRandom</code> w kodzie źródłowym). Chociaż sam generator jest deterministyczny, jego wynik jest teraz bezpośrednio uzależniony od nieprzewidywalnego ziarna pochodzącego z entropii.
+              <strong>Inicjalizacja Generatora PRNG:</strong> Utworzone ziarno jest następnie używane do zainicjowania naszego własnego, deterministycznego generatora liczb pseudolosowych. Chociaż sam generator jest deterministyczny, jego wynik jest teraz bezpośrednio uzależniony od nieprzewidywalnego ziarna pochodzącego z entropii.
+              <pre><code>
+{`const seededRandom = (seed: number) => {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};`}
+              </code></pre>
+              Funkcja <code>Math.sin()</code>, choć jest funkcją trygonometryczną, dla szybko zmieniających się wartości wejściowych (jak nasz seed) produkuje wyniki o wysokim stopniu chaosu, co jest pożądaną cechą w prostych generatorach PRNG.
             </li>
             <li>
               <strong>Generowanie Wyniku Końcowego:</strong> Z tak zainicjowanego generatora pobierana jest liczba z przedziału od 0 do 1. Liczba ta jest następnie mapowana na dostępny zakres numerów w dzienniku (z uwzględnieniem wartości minimalnej, maksymalnej oraz numeru wykluczonego), aby wylosować ostateczny numer ucznia.
+              <pre><code>
+{`const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
+const finalNumber = possibleNumbers[randomIndex];`}
+              </code></pre>
             </li>
           </ol>
 
