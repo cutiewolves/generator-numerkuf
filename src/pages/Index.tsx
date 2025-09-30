@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useMouseEntropy } from '@/hooks/useMouseEntropy';
 import { showError } from '@/utils/toast';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import EntropyCanvas from '@/components/EntropyCanvas';
 import { Progress } from '@/components/ui/progress';
 import CaseOpening from '@/components/CaseOpening';
@@ -388,10 +387,6 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className={cn("absolute bottom-0 left-0 w-full transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
-        <MadeWithDyad />
       </div>
     </div>
   );
