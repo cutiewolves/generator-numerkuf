@@ -22,19 +22,19 @@ const ConfettiEffect = ({ isAnimating, onComplete }: ConfettiEffectProps) => {
 
         // Left cannon
         confetti({
-          particleCount: 3,
-          angle: 60,
+          particleCount: 5,
+          angle: 45,
           spread: 55,
-          startVelocity: 60,
+          startVelocity: 70,
           origin: { x: 0, y: 0.5 },
           colors: colors,
         });
         // Right cannon
         confetti({
-          particleCount: 3,
-          angle: 120,
+          particleCount: 5,
+          angle: 135,
           spread: 55,
-          startVelocity: 60,
+          startVelocity: 70,
           origin: { x: 1, y: 0.5 },
           colors: colors,
         });
