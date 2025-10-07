@@ -372,27 +372,25 @@ const Index = () => {
                     </motion.div>
                   </motion.div>
                 ) : (
-                  <div className="w-full flex justify-center">
-                    <motion.div
-                      layoutId="roulette-container"
-                      className="w-full max-w-xs h-48"
-                      onLayoutAnimationStart={() => setIsTransitioning(true)}
-                      onLayoutAnimationComplete={() => setIsTransitioning(false)}
-                    >
-                      <CaseOpening 
-                        min={Number(min)} 
-                        max={Number(max)} 
-                        result={result}
-                        onSpinComplete={() => {}}
-                        shouldSpin={false}
-                        isFullScreen={false}
-                        displayNumbers={rouletteData?.displayNumbers || displayNumbers}
-                        winningIndex={rouletteData?.winningIndex || 0}
-                        isTransitioning={isTransitioning}
-                        jitterFactor={rouletteData?.jitterFactor || 0}
-                      />
-                    </motion.div>
-                  </div>
+                  <motion.div
+                    layoutId="roulette-container"
+                    className="w-full h-64"
+                    onLayoutAnimationStart={() => setIsTransitioning(true)}
+                    onLayoutAnimationComplete={() => setIsTransitioning(false)}
+                  >
+                    <CaseOpening 
+                      min={Number(min)} 
+                      max={Number(max)} 
+                      result={result}
+                      onSpinComplete={() => {}}
+                      shouldSpin={false}
+                      isFullScreen={false}
+                      displayNumbers={rouletteData?.displayNumbers || displayNumbers}
+                      winningIndex={rouletteData?.winningIndex || 0}
+                      isTransitioning={isTransitioning}
+                      jitterFactor={rouletteData?.jitterFactor || 0}
+                    />
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
