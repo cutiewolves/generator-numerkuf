@@ -15,6 +15,7 @@ import NotepadPanel from '@/components/NotepadPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { History } from 'lucide-react';
 import ConfettiEffect from '@/components/ConfettiEffect';
+import ExportNotesButton from '@/components/ExportNotesButton';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -271,8 +272,9 @@ const Index = () => {
               </Button>
             </SheetTrigger>
             <SheetContent className="bg-gray-800 border-gray-700 text-white flex flex-col">
-              <SheetHeader>
+              <SheetHeader className="flex flex-row items-center justify-between">
                 <SheetTitle className="text-yellow-400">Notatnik</SheetTitle>
+                <ExportNotesButton notes={sessionNotes} disabled={sessionNotes.length === 0} />
               </SheetHeader>
               <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} />
             </SheetContent>
@@ -408,8 +410,9 @@ const Index = () => {
           {/* Right Column: Notepad */}
           <div className={cn("hidden lg:block transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
             <Card className="bg-gray-800 border-gray-700 text-white h-full flex flex-col">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-yellow-400">Notatnik</CardTitle>
+                <ExportNotesButton notes={sessionNotes} disabled={sessionNotes.length === 0} />
               </CardHeader>
               <CardContent className="flex-grow">
                 <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} />
