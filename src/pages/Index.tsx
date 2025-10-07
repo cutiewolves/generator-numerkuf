@@ -336,12 +336,12 @@ const Index = () => {
                     onAnimationStart={() => setIsTransitioning(true)}
                     onAnimationComplete={() => setIsTransitioning(false)}
                   >
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-4 p-4 w-full h-full">
+                    <div className="flex flex-col items-center justify-center gap-4 p-4 w-full h-full overflow-y-auto">
                       {rouletteData.map((data, index) => (
                         <motion.div
                           key={index}
                           layoutId={`roulette-container-${index}`}
-                          className="w-full md:w-auto flex-1 max-w-md"
+                          className="w-full max-w-md"
                         >
                           <CaseOpening 
                             min={Number(min)} 
