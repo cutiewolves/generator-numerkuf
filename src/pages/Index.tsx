@@ -63,30 +63,6 @@ const generateNonRepeatingRandomArray = (length: number, min: number, max: numbe
   return result;
 };
 
-// Seeded Fisher-Yates shuffle
-const seededShuffle = <T,>(array: T[], seed: number): T[] => {
-  const shuffled = [...array];
-  let currentIndex = shuffled.length;
-  let currentSeed = seed;
-
-  while (currentIndex !== 0) {
-    currentSeed = seededRandom(currentSeed) * 1000000;
-    const randomIndex = Math.floor(seededRandom(currentSeed) * currentIndex);
-    currentIndex--;
-
-    [shuffled[currentIndex], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[currentIndex]];
-  }
-
-  return shuffled;
-};
-
-interface RouletteData {
-  displayNumbers: number[];
-  winningIndex: number;
-  result: number;
-  jitterFactor: number;
-}
-
 const Index = () => {
   const [min, setMin] = useState<number | ''>(1);
   const [max, setMax] = useState<number | ''>(36);
@@ -96,10 +72,11 @@ const Index = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [sessionNotes, setSessionNotes] = useState<Note[]>([]);
+  const [rouletteJitterFactor, setRouletteJitterFactor] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
 
   const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
-  const [rouletteData, setRouletteData] = useState<RouletteData | null>(null);
+  const [winningIndex, setWinningIndex] = useState(0);
 
   const entropyRef = useRef<HTMLDivElement>(null);
   const { points, clearPoints } = useMouseEntropy(entropyRef, !isSpinning && !isFullScreen);
@@ -140,11 +117,6 @@ const Index = () => {
     generateDisplayNumbers();
   }, [generateDisplayNumbers]);
 
-  useEffect(() => {
-    setResult(null);
-    setRouletteData(null);
-  }, [min, max, excluded]);
-
 
   const handleConfettiComplete = useCallback(() => {
     setShowConfetti(false);
@@ -182,27 +154,6 @@ const Index = () => {
     }
   };
 
-  const handleDeleteNote = (id: string) => {
-    const updatedNotes = sessionNotes.filter(note => note.id !== id);
-    setSessionNotes(updatedNotes);
-    try {
-      localStorage.setItem('sessionNotes', JSON.stringify(updatedNotes));
-    } catch (error) {
-      console.error("Failed to save notes to localStorage", error);
-      showError("Nie udało się usunąć notatki.");
-    }
-  };
-
-  const handleDeleteAllNotes = () => {
-    setSessionNotes([]);
-    try {
-      localStorage.removeItem('sessionNotes');
-    } catch (error) {
-      console.error("Failed to clear notes from localStorage", error);
-      showError("Nie udało się usunąć wszystkich notatek.");
-    }
-  };
-
   const handleGenerate = () => {
     if (isSpinning || isFullScreen) return;
 
@@ -237,10 +188,11 @@ const Index = () => {
     }
 
     const seed = points.reduce((acc, p) => acc + p.x + p.y, 0) * Date.now();
-    const shuffledNumbers = seededShuffle(possibleNumbers, seed);
-    const finalNumber = shuffledNumbers[0];
+    const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
+    const finalNumber = possibleNumbers[randomIndex];
 
     const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
+    
     const newNumbers = new Array(TOTAL_ITEMS).fill(0);
 
     if (possibleNumbers.length === 1) {
@@ -254,7 +206,7 @@ const Index = () => {
         let num;
         do {
           num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
-        } while (num === last && possibleNumbers.length > 1);
+        } while (num === last);
         newNumbers[i] = num;
         last = num;
       }
@@ -265,36 +217,33 @@ const Index = () => {
         let num;
         do {
           num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
-        } while (num === last && possibleNumbers.length > 1);
+        } while (num === last);
         newNumbers[i] = num;
         last = num;
       }
     }
-    
-    const newRouletteData: RouletteData = {
-      displayNumbers: newNumbers,
-      winningIndex: winnerIndex,
-      result: finalNumber,
-      jitterFactor: (Math.random() - 0.5) * 0.8,
-    };
 
-    setRouletteData(newRouletteData);
+    setDisplayNumbers(newNumbers);
+    setWinningIndex(winnerIndex);
     setResult(finalNumber);
     
     const newNote: Note = {
-      id: new Date().toISOString() + Math.random() + finalNumber,
+      id: new Date().toISOString() + Math.random(),
       number: finalNumber,
       note: '',
       timestamp: new Date().toISOString(),
     };
-    const allNewNotes = [newNote, ...sessionNotes];
-    setSessionNotes(allNewNotes);
+    const newNotes = [newNote, ...sessionNotes];
+    setSessionNotes(newNotes);
     try {
-      localStorage.setItem('sessionNotes', JSON.stringify(allNewNotes));
+      localStorage.setItem('sessionNotes', JSON.stringify(newNotes));
     } catch (error) {
       console.error("Failed to save notes to localStorage", error);
       showError("Nie udało się zapisać notatek.");
     }
+
+    const randomJitterFactor = (Math.random() - 0.5) * 0.8; // Random factor between -0.4 and 0.4
+    setRouletteJitterFactor(randomJitterFactor);
 
     setIsFullScreen(true);
     clearPoints();
@@ -321,12 +270,7 @@ const Index = () => {
                 <SheetTitle className="text-yellow-400">Notatnik</SheetTitle>
                 <ExportNotesButton notes={sessionNotes} disabled={sessionNotes.length === 0} />
               </SheetHeader>
-              <NotepadPanel
-                notes={sessionNotes}
-                onNoteChange={handleNoteChange}
-                onDeleteNote={handleDeleteNote}
-                onDeleteAllNotes={handleDeleteAllNotes}
-              />
+              <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} />
             </SheetContent>
           </Sheet>
         </div>
@@ -341,9 +285,9 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
           {/* Left Column: Main Content */}
           <div className="lg:col-span-2 flex flex-col space-y-8">
-            <div className="w-full">
+            <div className="w-full h-48">
               <AnimatePresence initial={false}>
-                {isFullScreen && rouletteData ? (
+                {isFullScreen ? (
                   <motion.div
                     key="fullscreen"
                     className="fixed inset-0 z-50 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center"
@@ -355,26 +299,26 @@ const Index = () => {
                   >
                     <motion.div
                       layoutId="roulette-container"
-                      className="w-full max-w-md"
+                      className="w-full"
                     >
                       <CaseOpening 
                         min={Number(min)} 
                         max={Number(max)} 
-                        result={rouletteData.result}
+                        result={result}
                         onSpinComplete={onSpinComplete}
                         shouldSpin={isSpinning}
                         isFullScreen={true}
-                        displayNumbers={rouletteData.displayNumbers}
-                        winningIndex={rouletteData.winningIndex}
+                        displayNumbers={displayNumbers}
+                        winningIndex={winningIndex}
                         isTransitioning={isTransitioning}
-                        jitterFactor={rouletteData.jitterFactor}
+                        jitterFactor={rouletteJitterFactor}
                       />
                     </motion.div>
                   </motion.div>
                 ) : (
                   <motion.div
                     layoutId="roulette-container"
-                    className="w-full h-64"
+                    className="w-full h-full"
                     onLayoutAnimationStart={() => setIsTransitioning(true)}
                     onLayoutAnimationComplete={() => setIsTransitioning(false)}
                   >
@@ -382,13 +326,13 @@ const Index = () => {
                       min={Number(min)} 
                       max={Number(max)} 
                       result={result}
-                      onSpinComplete={() => {}}
-                      shouldSpin={false}
+                      onSpinComplete={onSpinComplete}
+                      shouldSpin={isSpinning}
                       isFullScreen={false}
-                      displayNumbers={rouletteData?.displayNumbers || displayNumbers}
-                      winningIndex={rouletteData?.winningIndex || 0}
+                      displayNumbers={displayNumbers}
+                      winningIndex={winningIndex}
                       isTransitioning={isTransitioning}
-                      jitterFactor={rouletteData?.jitterFactor || 0}
+                      jitterFactor={rouletteJitterFactor}
                     />
                   </motion.div>
                 )}
@@ -465,12 +409,7 @@ const Index = () => {
                 <ExportNotesButton notes={sessionNotes} disabled={sessionNotes.length === 0} />
               </CardHeader>
               <CardContent className="flex-grow">
-                <NotepadPanel
-                  notes={sessionNotes}
-                  onNoteChange={handleNoteChange}
-                  onDeleteNote={handleDeleteNote}
-                  onDeleteAllNotes={handleDeleteAllNotes}
-                />
+                <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} />
               </CardContent>
             </Card>
           </div>
