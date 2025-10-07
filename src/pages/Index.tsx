@@ -17,7 +17,6 @@ import { History } from 'lucide-react';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import ExportNotesButton from '@/components/ExportNotesButton';
 import { Note } from '@/types';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -64,44 +63,20 @@ const generateNonRepeatingRandomArray = (length: number, min: number, max: numbe
   return result;
 };
 
-// Seeded Fisher-Yates shuffle
-const seededShuffle = <T,>(array: T[], seed: number): T[] => {
-  const shuffled = [...array];
-  let currentIndex = shuffled.length;
-  let currentSeed = seed;
-
-  while (currentIndex !== 0) {
-    currentSeed = seededRandom(currentSeed) * 1000000;
-    const randomIndex = Math.floor(seededRandom(currentSeed) * currentIndex);
-    currentIndex--;
-
-    [shuffled[currentIndex], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[currentIndex]];
-  }
-
-  return shuffled;
-};
-
-interface RouletteData {
-  displayNumbers: number[];
-  winningIndex: number;
-  result: number;
-  jitterFactor: number;
-}
-
 const Index = () => {
   const [min, setMin] = useState<number | ''>(1);
   const [max, setMax] = useState<number | ''>(36);
   const [excluded, setExcluded] = useState<number | ''>(7);
-  const [numberOfResults, setNumberOfResults] = useState(1);
-  const [results, setResults] = useState<number[] | null>(null);
+  const [result, setResult] = useState<number | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [sessionNotes, setSessionNotes] = useState<Note[]>([]);
+  const [rouletteJitterFactor, setRouletteJitterFactor] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
 
   const [displayNumbers, setDisplayNumbers] = useState<number[]>([]);
-  const [rouletteData, setRouletteData] = useState<RouletteData[]>([]);
+  const [winningIndex, setWinningIndex] = useState(0);
 
   const entropyRef = useRef<HTMLDivElement>(null);
   const { points, clearPoints } = useMouseEntropy(entropyRef, !isSpinning && !isFullScreen);
@@ -141,11 +116,6 @@ const Index = () => {
   useEffect(() => {
     generateDisplayNumbers();
   }, [generateDisplayNumbers]);
-
-  useEffect(() => {
-    setResults(null);
-    setRouletteData([]);
-  }, [min, max, excluded, numberOfResults]);
 
 
   const handleConfettiComplete = useCallback(() => {
@@ -217,72 +187,63 @@ const Index = () => {
       return;
     }
 
-    if (possibleNumbers.length < numberOfResults) {
-      showError(`Nie można wylosować ${numberOfResults} unikalnych numerów z podanego zakresu.`);
-      return;
+    const seed = points.reduce((acc, p) => acc + p.x + p.y, 0) * Date.now();
+    const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
+    const finalNumber = possibleNumbers[randomIndex];
+
+    const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
+    
+    const newNumbers = new Array(TOTAL_ITEMS).fill(0);
+
+    if (possibleNumbers.length === 1) {
+      newNumbers.fill(possibleNumbers[0]);
+    } else {
+      newNumbers[winnerIndex] = finalNumber;
+
+      // Fill from winner to end
+      let last = finalNumber;
+      for (let i = winnerIndex + 1; i < TOTAL_ITEMS; i++) {
+        let num;
+        do {
+          num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
+        } while (num === last);
+        newNumbers[i] = num;
+        last = num;
+      }
+
+      // Fill from winner to start
+      last = finalNumber;
+      for (let i = winnerIndex - 1; i >= 0; i--) {
+        let num;
+        do {
+          num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
+        } while (num === last);
+        newNumbers[i] = num;
+        last = num;
+      }
     }
 
-    const seed = points.reduce((acc, p) => acc + p.x + p.y, 0) * Date.now();
-    const shuffledNumbers = seededShuffle(possibleNumbers, seed);
-    const finalNumbers = shuffledNumbers.slice(0, numberOfResults);
-
-    const newRouletteData: RouletteData[] = finalNumbers.map(finalNumber => {
-      const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
-      const newNumbers = new Array(TOTAL_ITEMS).fill(0);
-
-      if (possibleNumbers.length === 1) {
-        newNumbers.fill(possibleNumbers[0]);
-      } else {
-        newNumbers[winnerIndex] = finalNumber;
-
-        // Fill from winner to end
-        let last = finalNumber;
-        for (let i = winnerIndex + 1; i < TOTAL_ITEMS; i++) {
-          let num;
-          do {
-            num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
-          } while (num === last && possibleNumbers.length > 1);
-          newNumbers[i] = num;
-          last = num;
-        }
-
-        // Fill from winner to start
-        last = finalNumber;
-        for (let i = winnerIndex - 1; i >= 0; i--) {
-          let num;
-          do {
-            num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
-          } while (num === last && possibleNumbers.length > 1);
-          newNumbers[i] = num;
-          last = num;
-        }
-      }
-      
-      return {
-        displayNumbers: newNumbers,
-        winningIndex: winnerIndex,
-        result: finalNumber,
-        jitterFactor: (Math.random() - 0.5) * 0.8,
-      };
-    });
-
-    setRouletteData(newRouletteData);
-    setResults(finalNumbers);
+    setDisplayNumbers(newNumbers);
+    setWinningIndex(winnerIndex);
+    setResult(finalNumber);
     
-    const newNotes: Note[] = finalNumbers.map(num => ({
-      id: new Date().toISOString() + Math.random() + num,
-      number: num,
+    const newNote: Note = {
+      id: new Date().toISOString() + Math.random(),
+      number: finalNumber,
       note: '',
       timestamp: new Date().toISOString(),
-    }));
-    const allNewNotes = [...newNotes, ...sessionNotes];
-    setSessionNotes(allNewNotes);
+    };
+    const newNotes = [newNote, ...sessionNotes];
+    setSessionNotes(newNotes);
     try {
-      localStorage.setItem('sessionNotes', JSON.stringify(allNewNotes));
+      localStorage.setItem('sessionNotes', JSON.stringify(newNotes));
     } catch (error) {
       console.error("Failed to save notes to localStorage", error);
       showError("Nie udało się zapisać notatek.");
     }
+
+    const randomJitterFactor = (Math.random() - 0.5) * 0.8; // Random factor between -0.4 and 0.4
+    setRouletteJitterFactor(randomJitterFactor);
 
     setIsFullScreen(true);
     clearPoints();
@@ -324,7 +285,7 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
           {/* Left Column: Main Content */}
           <div className="lg:col-span-2 flex flex-col space-y-8">
-            <div className="w-full">
+            <div className="w-full h-48">
               <AnimatePresence initial={false}>
                 {isFullScreen ? (
                   <motion.div
@@ -336,54 +297,44 @@ const Index = () => {
                     onAnimationStart={() => setIsTransitioning(true)}
                     onAnimationComplete={() => setIsTransitioning(false)}
                   >
-                    <div className="flex flex-col items-center justify-center gap-4 p-4 w-full h-full overflow-y-auto">
-                      {rouletteData.map((data, index) => (
-                        <motion.div
-                          key={index}
-                          layoutId={`roulette-container-${index}`}
-                          className="w-full max-w-md"
-                        >
-                          <CaseOpening 
-                            min={Number(min)} 
-                            max={Number(max)} 
-                            result={data.result}
-                            onSpinComplete={index === rouletteData.length - 1 ? onSpinComplete : () => {}}
-                            shouldSpin={isSpinning}
-                            isFullScreen={true}
-                            displayNumbers={data.displayNumbers}
-                            winningIndex={data.winningIndex}
-                            isTransitioning={isTransitioning}
-                            jitterFactor={data.jitterFactor}
-                          />
-                        </motion.div>
-                      ))}
-                    </div>
+                    <motion.div
+                      layoutId="roulette-container"
+                      className="w-full"
+                    >
+                      <CaseOpening 
+                        min={Number(min)} 
+                        max={Number(max)} 
+                        result={result}
+                        onSpinComplete={onSpinComplete}
+                        shouldSpin={isSpinning}
+                        isFullScreen={true}
+                        displayNumbers={displayNumbers}
+                        winningIndex={winningIndex}
+                        isTransitioning={isTransitioning}
+                        jitterFactor={rouletteJitterFactor}
+                      />
+                    </motion.div>
                   </motion.div>
                 ) : (
-                  <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
-                    {Array.from({ length: numberOfResults }).map((_, index) => (
-                      <motion.div
-                        key={index}
-                        layoutId={`roulette-container-${index}`}
-                        className="w-full h-48"
-                        onLayoutAnimationStart={() => setIsTransitioning(true)}
-                        onLayoutAnimationComplete={() => setIsTransitioning(false)}
-                      >
-                        <CaseOpening 
-                          min={Number(min)} 
-                          max={Number(max)} 
-                          result={results ? results[index] : null}
-                          onSpinComplete={() => {}}
-                          shouldSpin={false}
-                          isFullScreen={false}
-                          displayNumbers={rouletteData[index]?.displayNumbers || displayNumbers}
-                          winningIndex={rouletteData[index]?.winningIndex || 0}
-                          isTransitioning={isTransitioning}
-                          jitterFactor={rouletteData[index]?.jitterFactor || 0}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
+                  <motion.div
+                    layoutId="roulette-container"
+                    className="w-full h-full"
+                    onLayoutAnimationStart={() => setIsTransitioning(true)}
+                    onLayoutAnimationComplete={() => setIsTransitioning(false)}
+                  >
+                    <CaseOpening 
+                      min={Number(min)} 
+                      max={Number(max)} 
+                      result={result}
+                      onSpinComplete={onSpinComplete}
+                      shouldSpin={isSpinning}
+                      isFullScreen={false}
+                      displayNumbers={displayNumbers}
+                      winningIndex={winningIndex}
+                      isTransitioning={isTransitioning}
+                      jitterFactor={rouletteJitterFactor}
+                    />
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
@@ -403,24 +354,9 @@ const Index = () => {
                       <Label htmlFor="max" className="min-h-[2.5rem] flex items-end">Ostatni numer w dzienniku</Label>
                       <Input id="max" type="number" value={max} onChange={(e) => setMax(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="excluded">"Szczęśliwy numerek" (wyklucz)</Label>
                       <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="numberOfResults">Liczba losowań</Label>
-                      <Select onValueChange={(value) => setNumberOfResults(Number(value))} defaultValue="1" disabled={isBusy}>
-                        <SelectTrigger id="numberOfResults" className="bg-gray-700 border-gray-600">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-gray-700 text-white">
-                          <SelectItem value="1">1</SelectItem>
-                          <SelectItem value="2">2</SelectItem>
-                          <SelectItem value="3">3</SelectItem>
-                          <SelectItem value="4">4</SelectItem>
-                          <SelectItem value="5">5</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
                   </CardContent>
                   <CardFooter>
