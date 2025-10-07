@@ -263,7 +263,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start pt-8 p-4 lg:p-8 overflow-hidden relative">
       <ConfettiEffect isAnimating={showConfetti} onComplete={handleConfettiComplete} />
       <div className="w-full max-w-7xl mx-auto">
-        <div className={cn("absolute top-4 right-4 md:top-8 md-right-8 z-20 transition-opacity duration-300", isFullScreen ? "opacity-0" : "opacity-100")}>
+        <div className={cn("absolute top-4 right-4 md:top-8 md-right-8 z-20 transition-opacity duration-300 lg:hidden", isFullScreen ? "opacity-0" : "opacity-100")}>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="bg-gray-800 border-gray-700 hover:bg-gray-700">
@@ -286,8 +286,9 @@ const Index = () => {
           <p className="text-gray-400">Wylosuj ucznia do odpowiedzi.</p>
         </div>
 
-        <div className="flex justify-center">
-          <div className="w-full max-w-4xl flex flex-col space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+          {/* Left Column: Main Content */}
+          <div className="lg:col-span-2 flex flex-col space-y-8">
             <div className="w-full h-48">
               <AnimatePresence initial={false}>
                 {isFullScreen ? (
@@ -402,6 +403,18 @@ const Index = () => {
                 </Card>
               </div>
             </div>
+          </div>
+
+          {/* Right Column: Notepad */}
+          <div className={cn("hidden lg:block transition-opacity duration-300", isFullScreen ? "opacity-0 -z-10" : "opacity-100")}>
+            <Card className="bg-gray-800 border-gray-700 text-white h-full flex flex-col">
+              <CardHeader>
+                <CardTitle className="text-yellow-400">Notatnik</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
