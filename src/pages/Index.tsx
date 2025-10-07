@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { History } from 'lucide-react';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import ExportNotesButton from '@/components/ExportNotesButton';
+import { Note } from '@/types';
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -61,13 +62,6 @@ const generateNonRepeatingRandomArray = (length: number, min: number, max: numbe
   }
   return result;
 };
-
-interface Note {
-  id: string;
-  number: number;
-  note: string;
-  timestamp: string;
-}
 
 const Index = () => {
   const [min, setMin] = useState<number | ''>(1);

@@ -1,12 +1,6 @@
 import { Textarea } from '@/components/ui/textarea';
 import { AnimatePresence, motion } from 'framer-motion';
-
-interface Note {
-  id: string;
-  number: number;
-  note: string;
-  timestamp: string;
-}
+import { Note } from '@/types';
 
 interface NotepadPanelProps {
   notes: Note[];

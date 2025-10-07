@@ -4,15 +4,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { FileDown, ChevronDown } from 'lucide-react';
-
-interface Note {
-  id: string;
-  number: number;
-  note: string;
-  timestamp: string;
-}
+import { Note } from '@/types';
+import * as exportUtils from '@/lib/exportUtils';
 
 interface ExportNotesButtonProps {
   notes: Note[];
@@ -20,83 +20,81 @@ interface ExportNotesButtonProps {
 }
 
 const ExportNotesButton = ({ notes, disabled }: ExportNotesButtonProps) => {
-  const formatAsTxt = () => {
-    return notes
-      .map(note => {
-        const date = new Date(note.timestamp).toLocaleString('pl-PL');
-        return `Numer: ${note.number}\nData: ${date}\nNotatka: ${note.note}\n\n---\n`;
-      })
-      .join('');
-  };
-
-  const formatAsCsv = () => {
-    const header = 'Numer,Data,Notatka\n';
-    const rows = notes
-      .map(note => {
-        const date = new Date(note.timestamp).toLocaleString('pl-PL');
-        const sanitizedNote = `"${note.note.replace(/"/g, '""')}"`; // Handle quotes in notes
-        return `${note.number},${date},${sanitizedNote}`;
-      })
-      .join('\n');
-    return header + rows;
-  };
-
-  const formatAsJson = () => {
-    return JSON.stringify(notes, null, 2);
-  };
-
-  const downloadFile = (content: string, filename: string, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleExport = (format: 'txt' | 'csv' | 'json') => {
-    if (notes.length === 0) return;
-
-    switch (format) {
-      case 'txt':
-        downloadFile(formatAsTxt(), 'notatki.txt', 'text/plain;charset=utf-8');
-        break;
-      case 'csv':
-        downloadFile(formatAsCsv(), 'notatki.csv', 'text/csv;charset=utf-8');
-        break;
-      case 'json':
-        downloadFile(formatAsJson(), 'notatki.json', 'application/json;charset=utf-8');
-        break;
-    }
+  const handleExport = (handler: (notes: Note[]) => void) => {
+    if (disabled) return;
+    handler(notes);
   };
 
   return (
     <div className="flex items-center">
-      <Button onClick={() => handleExport('txt')} disabled={disabled} variant="outline" className="bg-gray-700 border-gray-600 hover:bg-gray-600 rounded-r-none">
-        <FileDown className="mr-2 h-4 w-4" />
-        Eksportuj
-      </Button>
-      <DropdownMenu>
+       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button disabled={disabled} variant="outline" size="icon" className="bg-gray-700 border-gray-600 hover:bg-gray-600 rounded-l-none border-l-0">
+          <Button disabled={disabled} variant="outline" size="icon" className="bg-gray-700 border-gray-600 hover:bg-gray-600 rounded-r-none border-r-0">
             <ChevronDown className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700 text-white">
-          <DropdownMenuItem onClick={() => handleExport('txt')}>
-            Eksportuj jako TXT
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleExport('csv')}>
-            Eksportuj jako CSV
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleExport('json')}>
-            Eksportuj jako JSON
-          </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Dokumenty</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent className="bg-gray-800 border-gray-700 text-white">
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handlePdf)}>PDF</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleDocx)}>DOCX (Word)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleHtml)}>HTML</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleMarkdown)}>Markdown</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleTxt)}>TXT</DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Arkusze</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent className="bg-gray-800 border-gray-700 text-white">
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleXlsx)}>XLSX (Excel)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleCsv)}>CSV</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleTsv)}>TSV</DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Dane</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent className="bg-gray-800 border-gray-700 text-white">
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleJson)}>JSON</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleJsonL)}>JSONL</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleXml)}>XML</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleYaml)}>YAML</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleSql)}>SQL (Insert)</DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Kod</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent className="bg-gray-800 border-gray-700 text-white">
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handlePhp)}>PHP</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handlePython)}>Python</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleRuby)}>Ruby</DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          <DropdownMenuSeparator className="bg-gray-700" />
+           <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Kopiuj do schowka</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent className="bg-gray-800 border-gray-700 text-white">
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleCopyToClipboardTxt)}>jako TXT</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleCopyToClipboardMd)}>jako Markdown</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport(exportUtils.handleCopyToClipboardJson)}>jako JSON</DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
         </DropdownMenuContent>
       </DropdownMenu>
+      <Button onClick={() => handleExport(exportUtils.handleTxt)} disabled={disabled} variant="outline" className="bg-gray-700 border-gray-600 hover:bg-gray-600 rounded-l-none">
+        <FileDown className="mr-2 h-4 w-4" />
+        Eksportuj
+      </Button>
     </div>
   );
 };
