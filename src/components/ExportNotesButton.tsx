@@ -25,9 +25,13 @@ const ExportNotesButton = ({ notes, disabled }: ExportNotesButtonProps) => {
 
   return (
     <div className="flex items-center">
-       <DropdownMenu>
+      <Button onClick={() => handleExport(exportUtils.handleTxt)} disabled={disabled} variant="outline" className="bg-gray-700 border-gray-600 hover:bg-gray-600 rounded-r-none">
+        <FileDown className="mr-2 h-4 w-4" />
+        Eksportuj
+      </Button>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button disabled={disabled} variant="outline" size="icon" className="bg-gray-700 border-gray-600 hover:bg-gray-600 rounded-r-none border-r-0">
+          <Button disabled={disabled} variant="outline" size="icon" className="bg-gray-700 border-gray-600 hover:bg-gray-600 rounded-l-none border-l-0">
             <ChevronDown className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -54,10 +58,6 @@ const ExportNotesButton = ({ notes, disabled }: ExportNotesButtonProps) => {
           <DropdownMenuItem className={itemClassName} onClick={() => handleExport(exportUtils.handleCopyToClipboardJson)}>Kopiuj jako JSON</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button onClick={() => handleExport(exportUtils.handleTxt)} disabled={disabled} variant="outline" className="bg-gray-700 border-gray-600 hover:bg-gray-600 rounded-l-none">
-        <FileDown className="mr-2 h-4 w-4" />
-        Eksportuj
-      </Button>
     </div>
   );
 };
