@@ -26,7 +26,7 @@ const ExportNotesButton = ({ notes, disabled }: ExportNotesButtonProps) => {
     <div className="flex items-center">
       <Button onClick={() => handleExport(exportUtils.handlePdf)} disabled={disabled} variant="outline" className="bg-gray-700 border-gray-600 hover:bg-gray-600 rounded-r-none">
         <FileDown className="mr-2 h-4 w-4" />
-        Eksportuj
+        Eksportuj PDF
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
