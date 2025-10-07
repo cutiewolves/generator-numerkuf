@@ -351,11 +351,11 @@ const Index = () => {
                   </CardHeader>
                   <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="min">Pierwszy numer w dzienniku</Label>
+                      <Label htmlFor="min" className="min-h-[2.5rem] flex items-end">Pierwszy numer w dzienniku</Label>
                       <Input id="min" type="number" value={min} onChange={(e) => setMin(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="max">Ostatni numer w dzienniku</Label>
+                      <Label htmlFor="max" className="min-h-[2.5rem] flex items-end">Ostatni numer w dzienniku</Label>
                       <Input id="max" type="number" value={max} onChange={(e) => setMax(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                     </div>
                     <div className="space-y-2 sm:col-span-2">
