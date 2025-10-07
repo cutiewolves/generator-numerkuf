@@ -13,10 +13,21 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import NotepadPanel from '@/components/NotepadPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { History } from 'lucide-react';
+import { History, Trash2 } from 'lucide-react';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import ExportNotesButton from '@/components/ExportNotesButton';
 import { Note } from '@/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // A simple seeded pseudo-random number generator
 const seededRandom = (seed: number) => {
@@ -154,6 +165,27 @@ const Index = () => {
     }
   };
 
+  const handleNoteDelete = (id: string) => {
+    const updatedNotes = sessionNotes.filter(note => note.id !== id);
+    setSessionNotes(updatedNotes);
+    try {
+      localStorage.setItem('sessionNotes', JSON.stringify(updatedNotes));
+    } catch (error) {
+      console.error("Failed to save notes to localStorage", error);
+      showError("Nie udało się usunąć notatki.");
+    }
+  };
+
+  const handleDeleteAllNotes = () => {
+    setSessionNotes([]);
+    try {
+      localStorage.removeItem('sessionNotes');
+    } catch (error) {
+      console.error("Failed to clear notes from localStorage", error);
+      showError("Nie udało się usunąć wszystkich notatek.");
+    }
+  };
+
   const handleGenerate = () => {
     if (isSpinning || isFullScreen) return;
 
@@ -270,7 +302,31 @@ const Index = () => {
                 <SheetTitle className="text-yellow-400">Notatnik</SheetTitle>
                 <ExportNotesButton notes={sessionNotes} disabled={sessionNotes.length === 0} />
               </SheetHeader>
-              <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} />
+              <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} onNoteDelete={handleNoteDelete} />
+              {sessionNotes.length > 0 && (
+                <div className="mt-auto pt-4 border-t border-gray-700">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="w-full">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Wyczyść wszystkie notatki
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-gray-800 border-gray-700 text-white">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Czy na pewno chcesz usunąć wszystkie notatki?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-400">
+                          Tej operacji nie można cofnąć. Wszystkie notatki z tej sesji zostaną trwale usunięte.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-gray-700 border-gray-600 hover:bg-gray-600">Anuluj</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteAllNotes} className="bg-red-600 hover:bg-red-700">Usuń</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
             </SheetContent>
           </Sheet>
         </div>
@@ -408,9 +464,33 @@ const Index = () => {
                 <CardTitle className="text-yellow-400">Notatnik</CardTitle>
                 <ExportNotesButton notes={sessionNotes} disabled={sessionNotes.length === 0} />
               </CardHeader>
-              <CardContent className="flex-grow">
-                <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} />
+              <CardContent className="flex-grow overflow-hidden">
+                <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} onNoteDelete={handleNoteDelete} />
               </CardContent>
+              {sessionNotes.length > 0 && (
+                <CardFooter className="pt-4 border-t border-gray-700">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="w-full">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Wyczyść wszystkie notatki
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-gray-800 border-gray-700 text-white">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Czy na pewno chcesz usunąć wszystkie notatki?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-400">
+                          Tej operacji nie można cofnąć. Wszystkie notatki z tej sesji zostaną trwale usunięte.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-gray-700 border-gray-600 hover:bg-gray-600">Anuluj</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteAllNotes} className="bg-red-600 hover:bg-red-700">Usuń</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </CardFooter>
+              )}
             </Card>
           </div>
         </div>
