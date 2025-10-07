@@ -11,7 +11,7 @@ import CaseOpening from '@/components/CaseOpening';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import HistoryPanel from '@/components/HistoryPanel';
+import NotepadPanel from '@/components/NotepadPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { History } from 'lucide-react';
 import ConfettiEffect from '@/components/ConfettiEffect';
@@ -61,6 +61,13 @@ const generateNonRepeatingRandomArray = (length: number, min: number, max: numbe
   return result;
 };
 
+interface Note {
+  id: string;
+  number: number;
+  note: string;
+  timestamp: string;
+}
+
 const Index = () => {
   const [min, setMin] = useState<number | ''>(1);
   const [max, setMax] = useState<number | ''>(36);
@@ -69,7 +76,7 @@ const Index = () => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [sessionHistory, setSessionHistory] = useState<number[]>([]);
+  const [sessionNotes, setSessionNotes] = useState<Note[]>([]);
   const [rouletteJitterFactor, setRouletteJitterFactor] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -81,23 +88,14 @@ const Index = () => {
 
   useEffect(() => {
     try {
-      const currentHistoryStr = localStorage.getItem('rouletteHistory');
-      if (currentHistoryStr) {
-        const currentHistory = JSON.parse(currentHistoryStr);
-        if (currentHistory.length > 0) {
-          const archivedHistoryStr = localStorage.getItem('archivedRouletteHistory');
-          const archivedHistory = archivedHistoryStr ? JSON.parse(archivedHistoryStr) : [];
-          const newArchivedHistory = [...currentHistory, ...archivedHistory];
-          localStorage.setItem('archivedRouletteHistory', JSON.stringify(newArchivedHistory));
-        }
+      const savedNotes = localStorage.getItem('sessionNotes');
+      if (savedNotes) {
+        setSessionNotes(JSON.parse(savedNotes));
       }
     } catch (error) {
-      console.error("Failed to archive history", error);
-      showError("Nie udało się zarchiwizować historii.");
+      console.error("Failed to load notes from localStorage", error);
+      showError("Nie udało się wczytać notatek.");
     }
-    
-    localStorage.removeItem('rouletteHistory');
-    setSessionHistory([]);
   }, []);
 
   // Generate numbers for the roulette on initial load and when settings change
@@ -147,6 +145,19 @@ const Index = () => {
       return () => clearTimeout(timer);
     }
   }, [isFullScreen, isSpinning]);
+
+  const handleNoteChange = (id: string, newNote: string) => {
+    const updatedNotes = sessionNotes.map(note =>
+      note.id === id ? { ...note, note: newNote } : note
+    );
+    setSessionNotes(updatedNotes);
+    try {
+      localStorage.setItem('sessionNotes', JSON.stringify(updatedNotes));
+    } catch (error) {
+      console.error("Failed to save notes to localStorage", error);
+      showError("Nie udało się zapisać notatki.");
+    }
+  };
 
   const handleGenerate = () => {
     if (isSpinning || isFullScreen) return;
@@ -221,13 +232,19 @@ const Index = () => {
     setWinningIndex(winnerIndex);
     setResult(finalNumber);
     
-    const newHistory = [finalNumber, ...sessionHistory];
-    setSessionHistory(newHistory);
+    const newNote: Note = {
+      id: new Date().toISOString() + Math.random(),
+      number: finalNumber,
+      note: '',
+      timestamp: new Date().toISOString(),
+    };
+    const newNotes = [newNote, ...sessionNotes];
+    setSessionNotes(newNotes);
     try {
-      localStorage.setItem('rouletteHistory', JSON.stringify(newHistory));
+      localStorage.setItem('sessionNotes', JSON.stringify(newNotes));
     } catch (error) {
-      console.error("Failed to save history to localStorage", error);
-      showError("Nie udało się zapisać historii.");
+      console.error("Failed to save notes to localStorage", error);
+      showError("Nie udało się zapisać notatek.");
     }
 
     const randomJitterFactor = (Math.random() - 0.5) * 0.8; // Random factor between -0.4 and 0.4
@@ -255,9 +272,9 @@ const Index = () => {
             </SheetTrigger>
             <SheetContent className="bg-gray-800 border-gray-700 text-white flex flex-col">
               <SheetHeader>
-                <SheetTitle className="text-yellow-400">Historia losowań</SheetTitle>
+                <SheetTitle className="text-yellow-400">Notatnik</SheetTitle>
               </SheetHeader>
-              <HistoryPanel history={sessionHistory} min={Number(min)} max={Number(max)} />
+              <NotepadPanel notes={sessionNotes} onNoteChange={handleNoteChange} />
             </SheetContent>
           </Sheet>
         </div>
