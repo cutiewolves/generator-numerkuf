@@ -36,6 +36,11 @@ export const handlePdf = (notes: Note[]) => {
     head: [['Numer', 'Data', 'Notatka']],
     body: notes.map(n => [n.number, getFormattedDate(n.timestamp), n.note || '']),
     startY: 20,
+    columnStyles: {
+      0: { cellWidth: 20 }, // Numer column
+      1: { cellWidth: 40 }, // Data column
+      2: { cellWidth: 'auto' }, // Notatka column
+    },
   });
   doc.save('notatki.pdf');
 };
