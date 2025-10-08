@@ -51,7 +51,7 @@ const NotepadPanel = ({ notes, onNoteChange, onNoteDelete }: NotepadPanelProps) 
                     placeholder="Dodaj notatkę..."
                     value={note.note}
                     onChange={(e) => onNoteChange(note.id, e.target.value)}
-                    className="bg-gray-600 border-gray-500 text-white resize-none"
+                    className="bg-gray-600 border-gray-500 text-white resize-y"
                   />
                 </motion.li>
               ))}
