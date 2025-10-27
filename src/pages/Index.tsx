@@ -29,10 +29,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-// A simple seeded pseudo-random number generator
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
+// A Mulberry32 implementation for a better pseudo-random number generator.
+const mulberry32 = (seed: number) => {
+  return () => {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
 };
 
 const ENTROPY_TARGET = 100; // Number of mouse points needed
@@ -40,14 +44,7 @@ const TOTAL_ITEMS = 100;
 const WINNING_INDEX_AREA = { min: 80, max: 90 };
 
 const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-const generateRandomNumber = (min: number, max: number, excluded: number) => {
-  let num;
-  do {
-    num = getRandomInt(min, max);
-  } while (num === excluded);
-  return num;
-};
+const pickRandomFrom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
 const generateNonRepeatingRandomArray = (length: number, min: number, max: number, excluded: number) => {
   const possibleNumbers = [];
@@ -66,7 +63,7 @@ const generateNonRepeatingRandomArray = (length: number, min: number, max: numbe
   for (let i = 0; i < length; i++) {
     let num;
     do {
-      num = generateRandomNumber(min, max, excluded);
+      num = pickRandomFrom(possibleNumbers);
     } while (num === lastNumber);
     result.push(num);
     lastNumber = num;
@@ -220,7 +217,8 @@ const Index = () => {
     }
 
     const seed = points.reduce((acc, p) => acc + p.x + p.y, 0) * Date.now();
-    const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
+    const randomGenerator = mulberry32(seed);
+    const randomIndex = Math.floor(randomGenerator() * possibleNumbers.length);
     const finalNumber = possibleNumbers[randomIndex];
 
     const winnerIndex = getRandomInt(WINNING_INDEX_AREA.min, WINNING_INDEX_AREA.max);
@@ -237,7 +235,7 @@ const Index = () => {
       for (let i = winnerIndex + 1; i < TOTAL_ITEMS; i++) {
         let num;
         do {
-          num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
+          num = pickRandomFrom(possibleNumbers);
         } while (num === last);
         newNumbers[i] = num;
         last = num;
@@ -248,7 +246,7 @@ const Index = () => {
       for (let i = winnerIndex - 1; i >= 0; i--) {
         let num;
         do {
-          num = generateRandomNumber(parsedMin, parsedMax, parsedExcluded);
+          num = pickRandomFrom(possibleNumbers);
         } while (num === last);
         newNumbers[i] = num;
         last = num;
