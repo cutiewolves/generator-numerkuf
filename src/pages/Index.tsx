@@ -281,6 +281,18 @@ const Index = () => {
     clearPoints();
   };
 
+  const handleNumberInputChange = (setter: React.Dispatch<React.SetStateAction<number | ''>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '') {
+      setter('');
+    } else {
+      const num = Number(value);
+      if (num >= 0) {
+        setter(num);
+      }
+    }
+  };
+
   const entropyProgress = Math.min((points.length / ENTROPY_TARGET) * 100, 100);
   const isBusy = isSpinning || isFullScreen;
   const buttonDisabled = isBusy || entropyProgress < 100 || min === '' || max === '' || excluded === '';
@@ -404,15 +416,15 @@ const Index = () => {
                   <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="min" className="min-h-[2.5rem] flex items-end">Pierwszy numer w dzienniku</Label>
-                      <Input id="min" type="number" value={min} onChange={(e) => setMin(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
+                      <Input id="min" type="number" value={min} onChange={handleNumberInputChange(setMin)} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="max" className="min-h-[2.5rem] flex items-end">Ostatni numer w dzienniku</Label>
-                      <Input id="max" type="number" value={max} onChange={(e) => setMax(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
+                      <Input id="max" type="number" value={max} onChange={handleNumberInputChange(setMax)} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                     </div>
                     <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="excluded">"Szczęśliwy numerek" (wyklucz)</Label>
-                      <Input id="excluded" type="number" value={excluded} onChange={(e) => setExcluded(e.target.value ? Number(e.target.value) : '')} className="bg-gray-700 border-gray-600" disabled={isBusy} />
+                      <Input id="excluded" type="number" value={excluded} onChange={handleNumberInputChange(setExcluded)} className="bg-gray-700 border-gray-600" disabled={isBusy} />
                     </div>
                   </CardContent>
                   <CardFooter>
