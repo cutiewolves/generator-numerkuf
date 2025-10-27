@@ -115,7 +115,7 @@ const Index = () => {
     const parsedMax = Number(max);
     const parsedExcluded = Number(excluded);
 
-    if (isNaN(parsedMin) || isNaN(parsedMax) || parsedMin >= parsedMax) {
+    if (isNaN(parsedMin) || isNaN(parsedMax) || parsedMin > parsedMax) {
       setDisplayNumbers([]);
       return;
     }
@@ -202,8 +202,8 @@ const Index = () => {
       showError('Proszę podać prawidłowe liczby minimalne i maksymalne.');
       return;
     }
-    if (parsedMin >= parsedMax) {
-      showError('Liczba minimalna musi być mniejsza od maksymalnej.');
+    if (parsedMin > parsedMax) {
+      showError('Liczba minimalna nie może być większa od maksymalnej.');
       return;
     }
 
