@@ -1,7 +1,19 @@
 import { Note } from '@/types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  ShadingType,
+  AlignmentType,
+  VerticalAlign,
+} from 'docx';
 
 const downloadFile = (content: BlobPart, filename: string, mimeType: string) => {
   const blob = new Blob([content], { type: mimeType });
@@ -26,8 +38,15 @@ const getNotesAsString = (notes: Note[]): string => {
     .join('');
 };
 
+const getFilename = (notes: Note[], extension: string): string => {
+  if (notes.length > 0 && notes.every(n => n.number === notes[0].number)) {
+    return `notatki_nr_${notes[0].number}.${extension}`;
+  }
+  return `notatki.${extension}`;
+}
+
 // Format Handlers
-export const handleTxt = (notes: Note[]) => downloadFile(getNotesAsString(notes), 'notatki.txt', 'text/plain;charset=utf-8');
+export const handleTxt = (notes: Note[]) => downloadFile(getNotesAsString(notes), getFilename(notes, 'txt'), 'text/plain;charset=utf-8');
 
 export const handlePdf = (notes: Note[]) => {
   const doc = new jsPDF();
@@ -42,27 +61,70 @@ export const handlePdf = (notes: Note[]) => {
       2: { cellWidth: 'auto' }, // Notatka column
     },
   });
-  doc.save('notatki.pdf');
+  doc.save(getFilename(notes, 'pdf'));
 };
 
 export const handleDocx = async (notes: Note[]) => {
+  const createHeaderCell = (text: string) => new TableCell({
+    children: [new Paragraph({
+      children: [new TextRun({ text, bold: true, color: "FFFFFF" })],
+      alignment: AlignmentType.CENTER,
+    })],
+    shading: {
+      fill: "3B82F6", // Tailwind blue-500
+      type: ShadingType.SOLID,
+    },
+    verticalAlign: VerticalAlign.CENTER,
+  });
+
+  const header = new TableRow({
+    children: [
+      createHeaderCell("Numer"),
+      createHeaderCell("Data"),
+      createHeaderCell("Notatka"),
+    ],
+  });
+
+  const dataRows = notes.map(note => {
+    return new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({ text: String(note.number), alignment: AlignmentType.CENTER })],
+          verticalAlign: VerticalAlign.CENTER,
+        }),
+        new TableCell({
+          children: [new Paragraph(getFormattedDate(note.timestamp))],
+          verticalAlign: VerticalAlign.CENTER,
+        }),
+        new TableCell({
+          children: (note.note || '').split('\n').map(line => new Paragraph(line)),
+          verticalAlign: VerticalAlign.CENTER,
+        }),
+      ],
+    });
+  });
+
+  const table = new Table({
+    rows: [header, ...dataRows],
+    width: {
+      size: 100,
+      type: WidthType.PERCENTAGE,
+    },
+    columnWidths: [1500, 2500, 5500],
+  });
+
   const doc = new Document({
     sections: [{
-      children: notes.flatMap(note => [
+      children: [
         new Paragraph({
-          children: [new TextRun({ text: `Numer: ${note.number}`, bold: true, size: 28 })],
+          children: [new TextRun({ text: "Notatki", bold: true, size: 32 })],
         }),
-        new Paragraph({
-          children: [new TextRun({ text: `Data: ${getFormattedDate(note.timestamp)}`, size: 20, italics: true })],
-        }),
-        new Paragraph({
-          children: [new TextRun({ text: note.note || '', break: 1 })],
-        }),
-        new Paragraph({ text: "---" }),
-      ]),
+        new Paragraph(" "), // Spacer
+        table,
+      ],
     }],
   });
 
   const blob = await Packer.toBlob(doc);
-  downloadFile(blob, 'notatki.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  downloadFile(blob, getFilename(notes, 'docx'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 };
