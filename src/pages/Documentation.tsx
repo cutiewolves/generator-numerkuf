@@ -83,19 +83,24 @@ const Documentation = () => {
               Dzięki temu nawet identyczne ruchy myszy wykonane w różnych momentach czasu wygenerują zupełnie inne ziarno.
             </li>
             <li>
-              <strong>Inicjalizacja Generatora PRNG:</strong> Utworzone ziarno jest następnie używane do zainicjowania naszego własnego, deterministycznego generatora liczb pseudolosowych. Chociaż sam generator jest deterministyczny, jego wynik jest teraz bezpośrednio uzależniony od nieprzewidywalnego ziarna pochodzącego z entropii.
+              <strong>Inicjalizacja Generatora PRNG:</strong> Utworzone ziarno jest następnie używane do zainicjowania naszego własnego, deterministycznego generatora liczb pseudolosowych. Aby zapewnić jeszcze lepszą jakość i rozkład statystyczny generowanych liczb, system wykorzystuje implementację algorytmu <strong>Mulberry32</strong>. Jest to szybki i sprawdzony generator, który produkuje sekwencje o wysokiej jakości, co minimalizuje ryzyko występowania niepożądanych wzorców (np. losowanie po sobie kolejnych liczb).
               <pre><code>
-{`const seededRandom = (seed: number) => {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
+{`const mulberry32 = (seed: number) => {
+  return () => {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
 };`}
               </code></pre>
-              Funkcja <code>Math.sin()</code>, choć jest funkcją trygonometryczną, dla szybko zmieniających się wartości wejściowych (jak nasz seed) produkuje wyniki o wysokim stopniu chaosu, co jest pożądaną cechą w prostych generatorach PRNG.
+              Funkcja <code>mulberry32</code> przyjmuje nasze unikalne ziarno i zwraca nową funkcję - właściwy generator. Każde wywołanie tej nowej funkcji zwraca kolejną liczbę pseudolosową z przedziału od 0 do 1.
             </li>
             <li>
               <strong>Generowanie Wyniku Końcowego:</strong> Z tak zainicjowanego generatora pobierana jest liczba z przedziału od 0 do 1. Liczba ta jest następnie mapowana na dostępny zakres numerów w dzienniku (z uwzględnieniem wartości minimalnej, maksymalnej oraz numeru wykluczonego), aby wylosować ostateczny numer ucznia.
               <pre><code>
-{`const randomIndex = Math.floor(seededRandom(seed) * possibleNumbers.length);
+{`const randomGenerator = mulberry32(seed);
+const randomIndex = Math.floor(randomGenerator() * possibleNumbers.length);
 const finalNumber = possibleNumbers[randomIndex];`}
               </code></pre>
             </li>
