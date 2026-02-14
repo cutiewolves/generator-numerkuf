@@ -65,6 +65,8 @@ Wierzymy, że kluczem do zaufania jest pełna transparentność. Dlatego cały k
 
 Repozytorium projektu na GitHub:
 https://github.com/cutiewolves/generator-numerkuf
+
 Podsumowanie
 
 System losujący w aplikacji "Kto do odpowiedzi?" łączy nieprzewidywalność ludzkiej interakcji z matematyczną precyzją wysokiej jakości algorytmu. Poprzez generowanie unikalnego ziarna z ruchów myszy, zapewniamy, że każde losowanie jest niezależnym, sprawiedliwym i kryptograficznie bezpiecznym zdarzeniem.
+
